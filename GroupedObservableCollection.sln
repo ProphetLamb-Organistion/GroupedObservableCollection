@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30717.126
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GroupedObservableCollection", "GroupedObservableCollection\GroupedObservableCollection.csproj", "{955B7BEF-7BBA-460F-8D13-75E9A9139CA1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GroupedObservableCollection", "src\GroupedObservableCollection.csproj", "{955B7BEF-7BBA-460F-8D13-75E9A9139CA1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GroupedObservableCollection.Test", "GroupedObservableCollection.Test\GroupedObservableCollection.Test.csproj", "{3A524A40-A0EB-46F8-B875-67A1ED96E0FC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GroupedObservableCollection.Test", "test\GroupedObservableCollection.Test.csproj", "{3A524A40-A0EB-46F8-B875-67A1ED96E0FC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
