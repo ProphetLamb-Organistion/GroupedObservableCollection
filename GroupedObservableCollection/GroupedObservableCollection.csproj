@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>8.0</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Nullable>enable</Nullable>
+    <Platforms>AnyCPU;x64;x86</Platforms>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Copyright>Copyright ProphetLamb 2021</Copyright>
+    <PackageLicenseFile>LICENCE</PackageLicenseFile>
+    <Authors>ProphetLamb</Authors>
+    <Description>Implementation of `ObservableCollection&lt;TValue&gt;`  that associates items with ´IGrouping&lt;TKey, TValue&gt;`s so that the `GroupedObservableCollection&lt;TKey, TValue&gt;` can be used in WPF Binding operations while synchronizing each group from a different datasource.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\LICENCE">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
+</Project>
