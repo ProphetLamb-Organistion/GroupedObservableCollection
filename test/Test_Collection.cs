@@ -12,9 +12,9 @@ namespace GroupedObservableCollection.Test
         public void Test_Ctor()
         {
             // Simple ctor
-            IObservableGroupCollection<KeyStru, ValueClass> col = new ObservableGroupCollection<KeyStru, ValueClass>();
+            _ = new ObservableGroupCollection<KeyStru, ValueClass>();
             // Collection ctor
-            col = new ObservableGroupCollection<KeyStru, ValueClass>(
+            _ = new ObservableGroupCollection<KeyStru, ValueClass>(
                 Resources.Instance.EnumerateSampleDataGrouped(),
                 new KeyStru.EqComp());
             Assert.Pass();
