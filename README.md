@@ -22,4 +22,4 @@ Implementation of ObservableCollection that associates items with IGrouping so t
 
 # Operation documentation
 ## Class diagram
-https://imgur.com/a/94yPIyJ
+[Class diagram picture](https://i.imgur.com/SXMDB8W.png)
