@@ -8,36 +8,36 @@ Implementation of ObservableCollection that associates items with IGrouping so t
 | Travis CI: Build & Test | [![Travis Badge](https://img.shields.io/travis/com/ProphetLamb-Organistion/GroupedObservableCollection)](https://travis-ci.com/github/ProphetLamb-Organistion/GroupedObservableCollection) |
 | Codacy: Code quality | [![Codacy Badge](https://app.codacy.com/project/badge/Grade/0bd8fedf894f4625b71e77221dff0976)](https://www.codacy.com/gh/ProphetLamb-Organistion/GroupedObservableCollection/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=ProphetLamb-Organistion/GroupedObservableCollection&amp;utm_campaign=Badge_Grade) |
 
-# Features
+## Features
 
-- [x] Collection operations e.g. Add, Move, Remove
-- [x] Group operations e.g. AddOrCreate, Create, Remove, Contains
-- [x] Synchronized operations
-- [x] ObservableCollection Events
-- [ ] Sorting for Keys and Values
-- [ ] SerializableAtttribute and ISerializable interface
+  - [x] Collection operations e.g. Add, Move, Remove
+  - [x] Group operations e.g. AddOrCreate, Create, Remove, Contains
+  - [x] Synchronized operations
+  - [x] ObservableCollection Events
+  - [ ] Sorting for Keys and Values
+  - [ ] SerializableAtttribute and ISerializable interface
 
-## Test coverage
+### Test coverage
 
-- [x] Collection operations e.g. Add, Move, Remove
-- [x] Group operations e.g. AddOrCreate, Create, Remove, Contains
-- [x] Synchronized operations
-- [ ] ObservableCollection Events
-- [ ] Sorting for Keys and Values
-- [ ] SerializableAtttribute and ISerializable interface
+  - [x] Collection operations e.g. Add, Move, Remove
+  - [x] Group operations e.g. AddOrCreate, Create, Remove, Contains
+  - [x] Synchronized operations
+  - [ ] ObservableCollection Events
+  - [ ] Sorting for Keys and Values
+  - [ ] SerializableAtttribute and ISerializable interface
 
-# Documentation
+## Documentation
 
-## Class diagram
+### Class diagram
 
 ![Class diagram picture](https://i.imgur.com/SXMDB8W.png)
 
-## Embeded documentation
+### Embeded documentation
 
 Documentation generated from xml-documentation
 
-- [`IGroupCollection<TKey, TValue>`](doc/IGroupCollection{TKey-TValue}.md)
-- [`IObservableCollection<T>`](doc/IObservableCollection{T}.md)
-- [`IObservableGroupCollection<TKey, TValue>`](doc/IObservableGroupCollection{TKey-TValue}.md)
-- [`IObservableGrouping<TKey, TValue>`](doc/IObservableGrouping{TKey-TValue}.md)
-- [`ObservableGroupCollection<TKey, TValue>`](doc/ObservableGroupCollection{TKey-TValue}.md)
+  - [`IGroupCollection<TKey, TValue>`](doc/IGroupCollection{TKey-TValue}.md)
+  - [`IObservableCollection<T>`](doc/IObservableCollection{T}.md)
+  - [`IObservableGroupCollection<TKey, TValue>`](doc/IObservableGroupCollection{TKey-TValue}.md)
+  - [`IObservableGrouping<TKey, TValue>`](doc/IObservableGrouping{TKey-TValue}.md)
+  - [`ObservableGroupCollection<TKey, TValue>`](doc/ObservableGroupCollection{TKey-TValue}.md)
