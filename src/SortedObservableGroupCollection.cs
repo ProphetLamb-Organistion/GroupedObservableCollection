@@ -27,7 +27,6 @@ namespace System.Collections.Specialized
 
         /// <inheritdoc />
         public SortedObservableGroupCollection()
-            : base()
         { }
         
         /// <inheritdoc />
@@ -49,9 +48,8 @@ namespace System.Collections.Specialized
         /// Initializes a new instance of <see cref="SortedObservableGroupCollection{TKey,TValue}"/> with the specified key, and value comparer.
         /// </summary>
         /// <param name="keyComparer">The comparer used to sort keys.</param>
-        /// <param name="valueComparer">The comparers used to sort values.</param>
+        /// <param name="valueComparer">The comparer used to sort values.</param>
         public SortedObservableGroupCollection(IComparer<TKey>? keyComparer, IComparer<TValue>? valueComparer)
-            : base()
         {
             KeyComparer = keyComparer;
             ValueComparer = valueComparer;
