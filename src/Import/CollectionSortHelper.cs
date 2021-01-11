@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using System.Text;
 
-namespace GroupedObservableCollection.Utility
+namespace GroupedObservableCollection.Import
 {
     internal static class CollectionSortHelper<T>
     {

@@ -21,7 +21,6 @@ namespace System.Numerics
         /// Any value outside the range [0..31] is treated as congruent mod 32.</param>
         /// <returns>The rotated value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        [CLSCompliant(false)]
         public static uint RotateLeft(uint value, int offset)
             => (value << offset) | (value >> (32 - offset));
     }
