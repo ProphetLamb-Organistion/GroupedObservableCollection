@@ -30,8 +30,8 @@ Implementation of ObservableCollection that associates items with IGrouping so t
 
 Documentation generated from xml-documentation
 
-- [`IGroupCollection<TKey, TValue>`](doc/IGroupCollection{TKey-TValue})
-- [`IObservableCollection<T>`](doc/IObservableCollection{T})
-- [`IObservableGroupCollection<TKey, TValue>`](doc/IObservableGroupCollection{TKey-TValue})
-- [`IObservableGrouping<TKey, TValue>`](doc/IObservableGrouping{TKey-TValue})
-- [`ObservableGroupCollection<TKey, TValue>`](doc/ObservableGroupCollection{TKey-TValue})
+- [`IGroupCollection<TKey, TValue>`](doc/IGroupCollection{TKey-TValue}.md)
+- [`IObservableCollection<T>`](doc/IObservableCollection{T}.md)
+- [`IObservableGroupCollection<TKey, TValue>`](doc/IObservableGroupCollection{TKey-TValue}.md)
+- [`IObservableGrouping<TKey, TValue>`](doc/IObservableGrouping{TKey-TValue}.md)
+- [`ObservableGroupCollection<TKey, TValue>`](doc/ObservableGroupCollection{TKey-TValue}.md)
