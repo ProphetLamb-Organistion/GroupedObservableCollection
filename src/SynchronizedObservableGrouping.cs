@@ -324,20 +324,32 @@ namespace System.Collections.Specialized
                 OnPropertyChanged("Item[]");
             }
 
-            public void OnPropertyChanged([CallerMemberName] string propertyName = null)
+            public void OnPropertyChanged([CallerMemberName] string? propertyName = null)
             {
                 if (_isVerbose)
                     PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
             }
             
-            private void OnCollectionChanged(NotifyCollectionChangedAction action, object item, int index)
+            private void OnCollectionChanged(NotifyCollectionChangedAction action, object? item, int index)
             {
                 OnCollectionChanged(new NotifyCollectionChangedEventArgs(action, item, index));
             }
+
+            private void OnCollectionChanged(NotifyCollectionChangedAction action, object? oldItem, object? item, int index)
+            {
+                OnCollectionChanged(new NotifyCollectionChangedEventArgs(action, oldItem, item, index));
+            }
+
+            private void OnCollectionChanged(NotifyCollectionChangedAction action, object? item, int index, int oldIndex)
+            {
+                OnCollectionChanged(new NotifyCollectionChangedEventArgs(action, item, index, oldIndex));
+            }
+
             private void OnCollectionReset()
             {
                 OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
             }
+
             private void OnCollectionChanged(NotifyCollectionChangedEventArgs e)
             {
                 if (_isVerbose)
@@ -357,15 +369,32 @@ namespace System.Collections.Specialized
                 {
                     case NotifyCollectionChangedAction.Add:
                         index = e.NewStartingIndex;
-                        foreach (object obj in EnumerateAffectingCollectionChanges(index, e.NewItems))
+                        IEnumerable? newEnumerable;
+                        if ((newEnumerable = EnumerateAffectingCollectionChanges(index, e.NewItems)) is null)
+                            return;
+                        foreach (object obj in newEnumerable)
                             OnCollectionChanged(NotifyCollectionChangedAction.Add, obj, index++);
                         break;
-                    case NotifyCollectionChangedAction.Replace:
                     case NotifyCollectionChangedAction.Remove:
+                        index = e.OldStartingIndex;
+                        IEnumerable? oldEnumerable;
+                        if ((oldEnumerable = EnumerateAffectingCollectionChanges(index, e.OldItems)) is null)
+                            return;
+                        foreach (object obj in oldEnumerable)
+                            OnCollectionChanged(NotifyCollectionChangedAction.Remove, obj, index++);
+                        break;
+                    case NotifyCollectionChangedAction.Replace:
+                        index = e.OldStartingIndex;
+                        if (EnumerateAffectingCollectionChanges(index, e.OldItems) is null 
+                         || EnumerateAffectingCollectionChanges(index, e.NewItems) is null)
+                            return;
+                        OnCollectionChanged(NotifyCollectionChangedAction.Replace, e.OldItems[0], e.NewItems[0], e.NewStartingIndex);
+                        break;
                     case NotifyCollectionChangedAction.Move:
                         index = e.OldStartingIndex;
-                        foreach (object obj in EnumerateAffectingCollectionChanges(index, e.OldItems))
-                            OnCollectionChanged(NotifyCollectionChangedAction.Add, obj, index++);
+                        if (EnumerateAffectingCollectionChanges(index, e.OldItems) is null)
+                            return;
+                        OnCollectionChanged(NotifyCollectionChangedAction.Move, e.OldItems, e.NewStartingIndex, e.OldStartingIndex);
                         break;
                     case NotifyCollectionChangedAction.Reset:
                         OnCollectionReset();
@@ -375,16 +404,22 @@ namespace System.Collections.Specialized
                 }
             }
 
-            private IEnumerable EnumerateAffectingCollectionChanges(int startIndex, IList items)
+            private IEnumerable? EnumerateAffectingCollectionChanges(int startIndex, IList items)
             {
-                int exclEnd = startIndex + items.Count;
-                // Changes do not affect us
-                if (exclEnd <= StartIndexInclusive && startIndex >= EndIndexExclusive)
-                    yield break;
-                // Intersecting set of changes
-                exclEnd = Math.Min(exclEnd, EndIndexExclusive);
-                for (int i = Math.Max(startIndex, StartIndexInclusive); i < exclEnd; i++)
+                int intersectionStart = Math.Max(StartIndexInclusive - startIndex, 0);
+                int intersectionEnd = Math.Min(EndIndexExclusive - startIndex, items.Count);
+                if (intersectionStart >= intersectionEnd)
+                    return null;
+                return EnumerationHelper(items, intersectionStart, intersectionEnd);
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private static IEnumerable EnumerationHelper(IList items, int start, int end)
+            {
+                for (int i = start; i < end; i++)
+                {
                     yield return items[i];
+                }
             }
 
             #endregion
