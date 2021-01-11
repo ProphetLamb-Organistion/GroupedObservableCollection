@@ -129,7 +129,7 @@ namespace System.Collections.Specialized
         #region Overrides
 
         /// <inheritdoc />
-        protected override void GroupAddValue(SynchronizedObservableGrouping group, TValue item, int desiredIndex = -1, bool offset = true)
+        protected override void GroupAddValue(SynchronizedObservableGrouping group, TValue item, int desiredIndex = -1)
         {
             int index = desiredIndex;
             if (!(ValueComparer is null))
@@ -141,7 +141,7 @@ namespace System.Collections.Specialized
                     item,
                     ValueComparer);
             }
-            base.GroupAddValue(group, item, index, offset);
+            base.GroupAddValue(group, item, index);
         }
 
         /// <inheritdoc />

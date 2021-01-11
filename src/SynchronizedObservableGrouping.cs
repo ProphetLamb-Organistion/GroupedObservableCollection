@@ -164,7 +164,7 @@ namespace System.Collections.Specialized
                 {
                     _collection.BaseCallCheckin();
 
-                    _collection.GroupAddValue(this, item, index, true);
+                    _collection.GroupAddValue(this, item, index);
 
                     _collection.BaseCallCheckout();
                 }
