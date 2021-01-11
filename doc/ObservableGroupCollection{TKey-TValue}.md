@@ -11,16 +11,17 @@ public class ObservableGroupCollection<TKey, TValue>
 
 | Type | Name | Summary |
 | --- | --- | --- |
-| `List<SynchronizedGrouping<TKey, TValue>>` | m_groups |  |
+| `List<SynchronizedObservableGrouping<TKey, TValue>>` | m_groups |  |
 | `IEqualityComparer<TKey>` | m_keyEqualityComparer |  |
-| `IDictionary<TKey, SynchronizedGrouping<TKey, TValue>>` | m_syncedGroups |  |
+| `IDictionary<TKey, SynchronizedObservableGrouping<TKey, TValue>>` | m_syncedGroups |  |
 
 ## Properties
 
 | Type | Name | Summary |
 | --- | --- | --- |
 | `Int32` | GroupCount |  |
-| `IObservableGrouping<TKey, TValue>` | Item |  |
+| `Boolean` | IsSorted |  |
+| `SynchronizedObservableGrouping<TKey, TValue>` | Item |  |
 
 ## Methods
 
@@ -29,21 +30,24 @@ public class ObservableGroupCollection<TKey, TValue>
 | `void` | AddOrCreate(`TKey&` key, `TValue&` value) |  |
 | `void` | AddOrCreate(`IGrouping<TKey, TValue>` grouping) |  |
 | `void` | AddOrCreate(`TKey&` key, `IEnumerable<TValue>` values) |  |
+| `void` | BaseCallCheckin() |  |
+| `void` | BaseCallCheckout() |  |
 | `void` | ClearItems() |  |
 | `Boolean` | ContainsKey(`TKey&` key) |  |
-| `IObservableGrouping<TKey, TValue>` | Create(`TKey&` key) |  |
+| `SynchronizedObservableGrouping<TKey, TValue>` | Create(`TKey&` key) |  |
 | `IEnumerable<IObservableGrouping<TKey, TValue>>` | EnumerateGroupings(`Func<IObservableGrouping<TKey, TValue>, Boolean>` predicate = null) |  |
+| `void` | GroupAdd(`SynchronizedObservableGrouping&` observableGrouping) |  |
+| `void` | GroupAddValue(`SynchronizedObservableGrouping<TKey, TValue>` group, `TValue` item, `Int32` desiredIndex = -1, `Boolean` offset = True) |  |
+| `void` | GroupRemove(`SynchronizedObservableGrouping&` observableGrouping) |  |
+| `Boolean` | GroupTryGet(`TKey&` key, `SynchronizedObservableGrouping&` syncedObservableGrouping) |  |
 | `void` | InsertItem(`Int32` index, `TValue` item) |  |
-| `void` | InternalAddGroup(`SynchronizedGrouping&` grouping) |  |
-| `void` | InternalRemoveGroup(`TKey&` key, `SynchronizedGrouping&` grouping) |  |
-| `Boolean` | InternalTryGetGrouping(`TKey&` key, `SynchronizedGrouping&` syncedGrouping) |  |
 | `void` | MoveItem(`Int32` oldIndex, `Int32` newIndex) |  |
-| `void` | OffsetGroupingsAfter(`SynchronizedGrouping&` emitter, `Int32` itemsCount) |  |
 | `Boolean` | Remove(`TKey&` key) |  |
 | `void` | RemoveItem(`Int32` index) |  |
 | `void` | SetItem(`Int32` index, `TValue` item) |  |
+| `void` | ThrowOnIllegalBaseCall(`String` callingFunction = null) |  |
 | `Boolean` | TryGetGrouping(`TKey&` key, `IObservableGrouping`2&` grouping) |  |
-| `Boolean` | TryGetGrouping(`TKey&` key, `IGrouping`2&` grouping) |  |
+| `Boolean` | TryGetGrouping(`TKey&` key, `SynchronizedObservableGrouping&` observableGrouping) |  |
 
 ---
 

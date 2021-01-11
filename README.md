@@ -42,3 +42,4 @@ Documentation generated from xml-documentation
   - [`IObservableGroupCollection<TKey, TValue>`](doc/IObservableGroupCollection{TKey-TValue}.md)
   - [`IObservableGrouping<TKey, TValue>`](doc/IObservableGrouping{TKey-TValue}.md)
   - [`ObservableGroupCollection<TKey, TValue>`](doc/ObservableGroupCollection{TKey-TValue}.md)
+  - [`SortedObservableGroupCollection<TKey, TValue>`](doc/SortedObservableGroupCollection{TKey-TValue}.md)
