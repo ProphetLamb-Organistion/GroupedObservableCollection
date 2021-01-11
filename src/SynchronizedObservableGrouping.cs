@@ -17,7 +17,7 @@ namespace System.Collections.Specialized
             private bool _isVerbose = true;
             private int _startIndexInclusive;
             private int _endIndexExclusive;
-            private bool _isSorted;
+            private readonly bool _isSorted;
 
             public event NotifyCollectionChangedEventHandler? CollectionChanged;
             public event PropertyChangedEventHandler? PropertyChanged;
@@ -64,11 +64,8 @@ namespace System.Collections.Specialized
                 get => _startIndexInclusive;
                 internal set
                 {
-                    lock (SyncRoot)
-                    {
-                        if ((uint)value > (uint)_collection.Count)
-                            throw new IndexOutOfRangeException();
-                    }
+                    if ((uint)value > (uint)CollectionCount)
+                        throw new IndexOutOfRangeException();
                     _startIndexInclusive = value;
                     OnPropertyChanged();
                 }
@@ -84,11 +81,8 @@ namespace System.Collections.Specialized
                 {
                     if (StartIndexInclusive > value)
                         throw new ArgumentOutOfRangeException(nameof(value), "EndIndexExclusive must be greater or equal to StartIndexInclusive");
-                    lock (SyncRoot)
-                    {
-                        if ((uint)value > (uint)_collection.Count)
-                            throw new IndexOutOfRangeException();
-                    }
+                    if ((uint)value > (uint)CollectionCount)
+                        throw new IndexOutOfRangeException();
                     _endIndexExclusive = value;
                     OnPropertyChanged();
                 }
@@ -127,6 +121,16 @@ namespace System.Collections.Specialized
                         throw new ArgumentOutOfRangeException(nameof(index));
                     Set(index, value);
                 }
+            }
+
+            private int CollectionCount
+            {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get
+                {
+                    lock (SyncRoot)
+                        return _collection.Count;
+                }   
             }
 
             #endregion

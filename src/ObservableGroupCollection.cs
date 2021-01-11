@@ -42,10 +42,9 @@ namespace System.Collections.Specialized
         /// <param name="keyEqualityComparer">The equality comparer used to get the hashcode of keys, and to determine if two keys are equal.</param>
         public ObservableGroupCollection(IEqualityComparer<TKey>? keyEqualityComparer)
         {
-            // Providing no EqualityComparer instead of the default reduces branching slightly in Dictionary.
             if (keyEqualityComparer is null)
             {
-                m_syncedGroups = new Dictionary<TKey, SynchronizedObservableGrouping>();
+                m_syncedGroups = new Dictionary<TKey, SynchronizedObservableGrouping>(); // Providing no EqualityComparer instead of the default reduces branching slightly in Dictionary.
                 m_keyEqualityComparer = EqualityComparer<TKey>.Default;
             }
             else
@@ -59,33 +58,18 @@ namespace System.Collections.Specialized
         /// Initializes a new instance of <see cref="ObservableGroupCollection{TKey,TValue}"/> from existing <paramref name="groupings"/>.
         /// </summary>
         /// <param name="groupings">The data source of the collection.</param>
-        public ObservableGroupCollection(IEnumerable<IGrouping<TKey, TValue>?> groupings) : this(groupings, null) { }
+        public ObservableGroupCollection(IEnumerable<IGrouping<TKey, TValue>?> groupings)
+            : this(groupings, null) { }
 
         /// <summary>
         /// Initializes a new instance of <see cref="ObservableGroupCollection{TKey,TValue}"/> from existing <paramref name="groupings"/>, with the specified <see cref="IEqualityComparer{TKey}"/>.
         /// </summary>
         /// <param name="groupings">The data source of the collection.</param>
         /// <param name="keyEqualityComparer">The equality comparer used to get the hashcode of keys, and to determine if two keys are equal.</param>
-        public ObservableGroupCollection(IEnumerable<IGrouping<TKey, TValue>?> groupings,
-            IEqualityComparer<TKey>? keyEqualityComparer) : this(keyEqualityComparer)
+        public ObservableGroupCollection(IEnumerable<IGrouping<TKey, TValue>?> groupings, IEqualityComparer<TKey>? keyEqualityComparer)
+            : this(keyEqualityComparer)
         {
-            Debug.Assert(groupings != null);
-            IList<TValue> items = Items;
-            foreach (IGrouping<TKey, TValue>? g in groupings!)
-            {
-                if (g is null)
-                    continue;
-                if (g.Key is null)
-                    throw new NullReferenceException("IGrouping.Key can not be null.");
-                SynchronizedObservableGrouping group = new SynchronizedObservableGrouping(g.Key, this, __syncRoot);
-                GroupAdd(group);
-                foreach (TValue item in g)
-                {
-                    items.Add(item);
-                    group.EndIndexExclusive++;
-                }
-                OffsetAfterGroup(group, group.Count);
-            }
+            CopyFrom(groupings ?? throw new ArgumentNullException(nameof(groupings)));
         }
 
         #endregion
@@ -242,6 +226,25 @@ namespace System.Collections.Specialized
         #endregion
 
         #region Private members
+
+        private void CopyFrom(IEnumerable<IGrouping<TKey, TValue>?> groupings)
+        {
+            foreach (IGrouping<TKey, TValue>? g in groupings)
+            {
+                if (g is null)
+                    continue;
+                if (g.Key is null)
+                    throw new NullReferenceException("IGrouping.Key can not be null.");
+                SynchronizedObservableGrouping group = new SynchronizedObservableGrouping(g.Key, this, __syncRoot);
+                GroupAdd(group);
+                foreach (TValue item in g)
+                {
+                    Items.Add(item);
+                    group.EndIndexExclusive++;
+                }
+                OffsetAfterGroup(group, group.Count);
+            }
+        }
 
         /// <summary>
         /// Adds the specific <see cref="SynchronizedObservableGrouping"/> to the collection
