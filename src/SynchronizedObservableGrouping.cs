@@ -8,15 +8,16 @@ namespace System.Collections.Specialized
     public partial class ObservableGroupCollection<TKey, TValue>
     {
         [DebuggerDisplay("Count = {Count}, Range=[{StartIndexInclusive}..{EndIndexExclusive}), Key = {Key}")]
-        protected class SynchronizedGrouping
+        public sealed class SynchronizedObservableGrouping
             : IObservableGrouping<TKey, TValue>, ICollection
         {
             #region Fields
+
             private readonly ObservableGroupCollection<TKey, TValue> _collection;
             private bool _isVerbose = true;
-            private readonly object __syncLock;
             private int _startIndexInclusive;
             private int _endIndexExclusive;
+            private bool _isSorted;
 
             public event NotifyCollectionChangedEventHandler? CollectionChanged;
             public event PropertyChangedEventHandler? PropertyChanged;
@@ -25,18 +26,27 @@ namespace System.Collections.Specialized
 
             #region Constructors
 
-            public SynchronizedGrouping(in TKey key, ObservableGroupCollection<TKey, TValue> collection, object syncRoot) :
-                this(key, collection.Count, collection.Count, collection, syncRoot) 
+            public SynchronizedObservableGrouping(
+                in TKey key,
+                ObservableGroupCollection<TKey, TValue> collection,
+                object syncRoot) :
+                this(key, collection.Count, collection.Count, collection, syncRoot)
             { }
 
-            public SynchronizedGrouping(in TKey key, int startIndexInclusive, int endIndexExclusive, ObservableGroupCollection<TKey, TValue> collection, object syncRoot)
+            public SynchronizedObservableGrouping(
+                in TKey key,
+                int startIndexInclusive,
+                int endIndexExclusive,
+                ObservableGroupCollection<TKey, TValue> collection,
+                object syncRoot)
             {
                 Key = key;
                 _startIndexInclusive = startIndexInclusive;
                 _endIndexExclusive = endIndexExclusive;
                 _collection = collection ?? throw new ArgumentNullException(nameof(collection));
                 _collection.CollectionChanged += CollectionChangedEventSubscriber;
-                __syncLock = syncRoot ?? throw new ArgumentNullException(nameof(syncRoot));
+                _isSorted = collection.IsSorted;
+                SyncRoot = syncRoot ?? throw new ArgumentNullException(nameof(syncRoot));
             }
 
             #endregion
@@ -47,14 +57,14 @@ namespace System.Collections.Specialized
             public TKey Key { get; }
 
             /// <summary>
-            /// Gets or sets the index of the first element of the <see cref="SynchronizedGrouping"/> in the synchronized collection.
+            /// Gets or sets the index of the first element of the <see cref="SynchronizedObservableGrouping"/> in the synchronized collection.
             /// </summary>
             public int StartIndexInclusive
             {
                 get => _startIndexInclusive;
                 internal set
                 {
-                    lock (__syncLock)
+                    lock (SyncRoot)
                     {
                         if ((uint)value > (uint)_collection.Count)
                             throw new IndexOutOfRangeException();
@@ -65,7 +75,7 @@ namespace System.Collections.Specialized
             }
             
             /// <summary>
-            /// Gets or sets the index of the element after the last element of the <see cref="SynchronizedGrouping"/> in the synchronized collection.
+            /// Gets or sets the index of the element after the last element of the <see cref="SynchronizedObservableGrouping"/> in the synchronized collection.
             /// </summary>
             public int EndIndexExclusive
             {
@@ -74,7 +84,7 @@ namespace System.Collections.Specialized
                 {
                     if (StartIndexInclusive > value)
                         throw new ArgumentOutOfRangeException(nameof(value), "EndIndexExclusive must be greater or equal to StartIndexInclusive");
-                    lock (__syncLock)
+                    lock (SyncRoot)
                     {
                         if ((uint)value > (uint)_collection.Count)
                             throw new IndexOutOfRangeException();
@@ -91,15 +101,13 @@ namespace System.Collections.Specialized
             public bool IsSynchronized => true;
 
             /// <inheritdoc />
-            public object SyncRoot
-            {
-                get 
-                { 
-                    lock(__syncLock)
-                        return _collection;
-                }
-            }
-            
+            public object SyncRoot { get; }
+
+            /// <summary>
+            /// Indicates whether the synchronized collection is sorted. If true, can not Insert or Move.
+            /// </summary>
+            public bool IsSorted => _isSorted; // Do not use auto-property, prevent unnecessary locking
+
             /// <inheritdoc />
             bool ICollection<TValue>.IsReadOnly => false;
             
@@ -110,7 +118,7 @@ namespace System.Collections.Specialized
                 {
                     if ((uint)index >= (uint)Count)
                         throw new ArgumentOutOfRangeException(nameof(index));
-                    lock (__syncLock)
+                    lock (SyncRoot)
                         return _collection[index + StartIndexInclusive];
                 }
                 set
@@ -128,7 +136,7 @@ namespace System.Collections.Specialized
             /// <inheritdoc />
             public void Add(TValue item)
             {
-                lock (__syncLock)
+                lock (SyncRoot)
                     _collection.AddOrCreate(Key, item);
 
                 OnPropertyChanged("Count");
@@ -138,7 +146,8 @@ namespace System.Collections.Specialized
             /// <inheritdoc />
             public void Insert(int index, TValue item)
             {
-                
+                if (IsSorted)
+                    throw new NotSupportedException("Can not insert into a sorted collection.");
                 if ((uint)index > (uint)Count)
                     throw new ArgumentOutOfRangeException(nameof(index));
                 if (index == Count)
@@ -147,16 +156,14 @@ namespace System.Collections.Specialized
                     return;
                 }
                 
-                lock (__syncLock)
+                lock (SyncRoot)
                 {
                     _collection.BaseCallCheckin();
 
-                    _collection.Insert(index + StartIndexInclusive, item);
-                    _collection.OffsetGroupingsAfter(this, 1);
+                    _collection.GroupAddValue(this, item, index, true);
 
                     _collection.BaseCallCheckout();
                 }
-                EndIndexExclusive++;
                 OnPropertyChanged("Count");
                 OnPropertyChanged("Item[]");
             }
@@ -164,7 +171,7 @@ namespace System.Collections.Specialized
             /// <inheritdoc />
             public void Clear()
             {
-                lock (__syncLock)
+                lock (SyncRoot)
                 {
                     _collection.BaseCallCheckin();
 
@@ -172,7 +179,7 @@ namespace System.Collections.Specialized
                     {
                         _collection.RemoveAt(i);
                     }
-                    _collection.OffsetGroupingsAfter(this, -Count);
+                    _collection.OffsetAfterGroup(this, -Count);
 
                     _collection.BaseCallCheckin();
                 }
@@ -202,7 +209,7 @@ namespace System.Collections.Specialized
                 for (int i = StartIndexInclusive; i < EndIndexExclusive; i++)
                 {
                     TValue value;
-                    lock (__syncLock)
+                    lock (SyncRoot)
                         value = _collection[i];
                     if (valueComparer.Equals(item, value))
                         return i - StartIndexInclusive;
@@ -215,13 +222,12 @@ namespace System.Collections.Specialized
             {
                 if ((uint)index >= (uint)Count)
                     throw new ArgumentOutOfRangeException(nameof(index));
-                TValue item = this[index];
-                lock (__syncLock)
+                lock (SyncRoot)
                 {
                     _collection.BaseCallCheckin();
 
                     _collection.RemoveAt(index+StartIndexInclusive);
-                    _collection.OffsetGroupingsAfter(this, -1);
+                    _collection.OffsetAfterGroup(this, -1);
 
                     _collection.BaseCallCheckout();
                 }
@@ -233,6 +239,8 @@ namespace System.Collections.Specialized
             /// <inheritdoc />
             public void Move(int oldIndex, int newIndex)
             {
+                if (IsSorted)
+                    throw new NotSupportedException("Can not move in a sorted collection.");
                 _isVerbose = false;
                 TValue item = this[oldIndex];
                 RemoveAt(oldIndex);
@@ -253,7 +261,7 @@ namespace System.Collections.Specialized
                 for (int i = StartIndexInclusive; i < EndIndexExclusive; i++)
                 {
                     TValue item;
-                    lock (_collection)
+                    lock (SyncRoot)
                         item = _collection[i];
                     array[arrayIndex++] = item;
                 }
@@ -271,7 +279,7 @@ namespace System.Collections.Specialized
                 for (int i = StartIndexInclusive; i < EndIndexExclusive; i++)
                 {
                     TValue item;
-                    lock (_collection)
+                    lock (SyncRoot)
                         item = _collection[i];
                     array.SetValue(item, index++);
                 }
@@ -282,8 +290,10 @@ namespace System.Collections.Specialized
             {
                 for (int i = StartIndexInclusive; i < EndIndexExclusive; i++)
                 {
-                    lock (__syncLock)
-                        yield return _collection[i];
+                    TValue item;
+                    lock (SyncRoot)
+                        item = _collection[i];
+                    yield return item;
                 }
             }
             
@@ -296,7 +306,7 @@ namespace System.Collections.Specialized
 
             private void Set(int index, TValue item)
             {
-                lock (__syncLock)
+                lock (SyncRoot)
                 {
                     _collection.BaseCallCheckin();
 
