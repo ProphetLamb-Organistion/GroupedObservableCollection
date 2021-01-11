@@ -17,8 +17,6 @@ namespace System.Collections.Specialized
 
         protected readonly IEqualityComparer<TKey> m_keyEqualityComparer;
 
-        private SynchronizedGrouping? _previousHit;
-
         private readonly object __syncRoot = new object();
 
         private bool _throwOnBaseCall = true;
@@ -27,12 +25,21 @@ namespace System.Collections.Specialized
 
         #region Constructors
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="ObservableGroupCollection{TKey,TValue}"/> with the specified <see cref="IEqualityComparer{TKey}"/>.
+        /// </summary>
+        /// <param name="keyEqualityComparer">The equality comparer used to get the hashcode of keys, and to determine if two keys are equal.</param>
         public ObservableGroupCollection(IEqualityComparer<TKey>? keyEqualityComparer = null)
         {
             m_keyEqualityComparer = keyEqualityComparer ?? EqualityComparer<TKey>.Default;
             m_syncedGroups = new Dictionary<TKey, SynchronizedGrouping>(m_keyEqualityComparer);
         }
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="ObservableGroupCollection{TKey,TValue}"/> from existing <paramref name="groupings"/>, with the specified <see cref="IEqualityComparer{TKey}"/>.
+        /// </summary>
+        /// <param name="groupings">The data source of the collection.</param>
+        /// <param name="keyEqualityComparer">The equality comparer used to get the hashcode of keys, and to determine if two keys are equal.</param>
         public ObservableGroupCollection(IEnumerable<IGrouping<TKey, TValue>?> groupings,
             IEqualityComparer<TKey>? keyEqualityComparer = null) : this(keyEqualityComparer)
         {
@@ -159,8 +166,6 @@ namespace System.Collections.Specialized
             {
                 RemoveAt(i);
             }
-            // Reset previous grouping returned by InternalTryGetGrouping, to ensure that no dead grouping evaluates true
-            _previousHit = null;
 
             BaseCallCheckout();
             return true;
@@ -226,20 +231,8 @@ namespace System.Collections.Specialized
         {
             if (key is null)
                 throw new ArgumentNullException(nameof(key));
-            if (!(_previousHit is null) && m_keyEqualityComparer.Equals(key, _previousHit.Key))
-            {
-                syncedGrouping = _previousHit;
-                return true;
-            }
 
-            if (m_syncedGroups.TryGetValue(key, out syncedGrouping))
-            {
-                _previousHit = syncedGrouping;
-                return true;
-            }
-
-            _previousHit = default;
-            return false;
+            return m_syncedGroups.TryGetValue(key, out syncedGrouping);
         }
 
         protected virtual void OffsetGroupingsAfter(in SynchronizedGrouping emitter, int itemsCount)
@@ -283,8 +276,6 @@ namespace System.Collections.Specialized
             // Clear groups
             m_syncedGroups.Clear();
             m_groups.Clear();
-            // Reset InternalTryGetGrouping
-            _previousHit = null;
         }
 
         /// <summary>
