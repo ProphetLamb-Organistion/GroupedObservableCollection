@@ -1,37 +1,54 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ClassDiagram MajorVersion="1" MinorVersion="1">
   <Class Name="System.Collections.Specialized.ObservableGroupCollection&lt;TKey, TValue&gt;">
-    <Position X="9" Y="0.5" Width="3" />
+    <Position X="1" Y="6.25" Width="3.25" />
     <Compartments>
       <Compartment Name="Fields" Collapsed="true" />
     </Compartments>
     <TypeIdentifier>
-      <HashCode>QEAAAABAAAAEJAlACAEIBABQQCAAAEAcABAwIAAAAQA=</HashCode>
-      <FileName>GroupedObservableCollection.cs</FileName>
+      <HashCode>QEAAAABIAUAEBApACAEABABQQCAEAEAMAAA0IAAAAQQ=</HashCode>
+      <FileName>ObservableGroupCollection.cs</FileName>
     </TypeIdentifier>
     <Lollipop Position="0.2" />
   </Class>
   <Class Name="System.Collections.Specialized.ObservableGroupCollection&lt;TKey, TValue&gt;">
-    <Position X="12.5" Y="0.5" Width="3" />
+    <Position X="4.75" Y="6.25" Width="3.25" />
     <Compartments>
       <Compartment Name="Nested Types" Collapsed="false" />
     </Compartments>
     <NestedTypes>
-      <Class Name="System.Collections.Specialized.ObservableGroupCollection&lt;TKey, TValue&gt;.SynchronizedGrouping">
+      <Class Name="System.Collections.Specialized.ObservableGroupCollection&lt;TKey, TValue&gt;.SynchronizedObservableGrouping">
         <Compartments>
           <Compartment Name="Fields" Collapsed="true" />
         </Compartments>
         <TypeIdentifier>
-          <NewMemberFileName>SynchronizedGrouping.cs</NewMemberFileName>
+          <NewMemberFileName>SynchronizedObservableGrouping.cs</NewMemberFileName>
         </TypeIdentifier>
         <Lollipop Position="0.2" />
       </Class>
     </NestedTypes>
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
-      <FileName>SynchronizedGrouping.cs</FileName>
+      <FileName>SynchronizedObservableGrouping.cs</FileName>
     </TypeIdentifier>
     <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="System.Collections.Specialized.SortedObservableGroupCollection&lt;TKey, TValue&gt;">
+    <Position X="8.5" Y="8.25" Width="3.5" />
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+    </Compartments>
+    <InheritanceLine Type="System.Collections.Specialized.ObservableGroupCollection&lt;TKey, TValue&gt;" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="8" Y="7.719" />
+        <Point X="10.312" Y="7.719" />
+        <Point X="10.312" Y="8.25" />
+      </Path>
+    </InheritanceLine>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAABAEAAEAAAAAAgAAAAAEAAAAAAAAAAAAAAQ=</HashCode>
+      <FileName>SortedObservableGroupCollection.cs</FileName>
+    </TypeIdentifier>
   </Class>
   <Interface Name="System.Collections.Specialized.IGroupCollection&lt;TKey, TValue&gt;">
     <Position X="5.25" Y="0.5" Width="2.25" />

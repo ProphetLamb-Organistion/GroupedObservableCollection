@@ -30,7 +30,8 @@ Implementation of ObservableCollection that associates items with IGrouping so t
 
 ### Class diagram
 
-![Class diagram picture](https://i.imgur.com/SXMDB8W.png)
+![Interface diagram picture](https://i.imgur.com/X5YJBkn.png)
+![Class diagram picture](https://i.imgur.com/gLhySIS.png)
 
 ### Embeded documentation
 
