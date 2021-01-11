@@ -21,3 +21,5 @@ Implementation of ObservableCollection that associates items with IGrouping so t
 - [ ] SerializableAtttribute and ISerializable interface
 
 # Operation documentation
+## Class diagram
+![Class diagram](https://imgur.com/a/94yPIyJ)
