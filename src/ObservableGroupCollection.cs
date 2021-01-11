@@ -122,7 +122,6 @@ namespace System.Collections.Specialized
         {
             BaseCallCheckin();
 
-            int itemsCount = 0;
             if (!GroupTryGet(key, out SynchronizedObservableGrouping group))
             {
                 group = new SynchronizedObservableGrouping(key, this, __syncRoot);
@@ -133,12 +132,8 @@ namespace System.Collections.Specialized
 
             while (en.MoveNext())
             {
-                GroupAddValue(group, en.Current, -1, false);
-                itemsCount++;
+                GroupAddValue(group, en.Current);
             }
-
-            group.EndIndexExclusive += itemsCount;
-            OffsetAfterGroup(group, itemsCount);
 
             BaseCallCheckout();
         }
@@ -211,7 +206,7 @@ namespace System.Collections.Specialized
         /// <param name="predicate">A function to test each grouping for a condition.</param>
         /// <returns>An <see cref="IEnumerable{IObservableGrouping{TKey, TValue}}"/> that contains groupings from the <see cref="IObservableGrouping{TKey, TValue}"/> that satisfy the condition.</returns>
         public IEnumerable<IObservableGrouping<TKey, TValue>> EnumerateGroupings(
-            Func<IObservableGrouping<TKey, TValue>, bool>? predicate = null)
+            Func<IObservableGrouping<TKey, TValue>?, bool>? predicate = null)
         {
             // Prevent caller code from casting to List<> and modifying m_groups.
             using List<SynchronizedObservableGrouping>.Enumerator en = m_groups.GetEnumerator();
@@ -286,16 +281,12 @@ namespace System.Collections.Specialized
         /// <param name="group">The group to which the item shall be added.</param>
         /// <param name="item">The item to add.</param>
         /// <param name="desiredIndex">The index at which the item should be added. -1 and group.Count add the item at the end of the group. Does not guarantee the eventual index of the item.</param>
-        /// <param name="offset">Whether to offset the groups after, and increment this <paramref name="group"/>s EndIndexExclusive.</param>
-        protected virtual void GroupAddValue(SynchronizedObservableGrouping group, TValue item, int desiredIndex = -1, bool offset = true)
+        protected virtual void GroupAddValue(SynchronizedObservableGrouping group, TValue item, int desiredIndex = -1)
         {
             Debug.Assert(desiredIndex == -1 || (uint)desiredIndex <= (uint)group.Count, "desiredIndex == -1 || (uint)desiredIndex <= (uint)group.Count");
-            InsertItem( desiredIndex == -1 ? group.EndIndexExclusive : group.StartIndexInclusive + desiredIndex, item);
-            if (offset)
-            {
-                OffsetAfterGroup(group, 1);
-                group.EndIndexExclusive++;
-            }
+            group.EndIndexExclusive++;
+            OffsetAfterGroup(group, 1);
+            InsertItem( desiredIndex == -1 ? group.EndIndexExclusive - 1 : group.StartIndexInclusive + desiredIndex, item);
         }
 
         private void OffsetAfterGroup(in SynchronizedObservableGrouping emitter, int itemsCount)
