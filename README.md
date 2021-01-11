@@ -5,7 +5,7 @@ Implementation of ObservableCollection that associates items with IGrouping so t
 ## Build
 | Name | Badge |
 | ---- | ---- |
-| Travis CI: Build & Test | [![](https://img.shields.io/travis/com/ProphetLamb-Organistion/GroupedObservableCollection)](https://travis-ci.com/github/ProphetLamb-Organistion/GroupedObservableCollection) |
+| Travis CI: Build & Test | [![Travis Badge](https://img.shields.io/travis/com/ProphetLamb-Organistion/GroupedObservableCollection)](https://travis-ci.com/github/ProphetLamb-Organistion/GroupedObservableCollection) |
 | Codacy: Code quality | [![Codacy Badge](https://app.codacy.com/project/badge/Grade/0bd8fedf894f4625b71e77221dff0976)](https://www.codacy.com/gh/ProphetLamb-Organistion/GroupedObservableCollection/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=ProphetLamb-Organistion/GroupedObservableCollection&amp;utm_campaign=Badge_Grade) |
 
 # Features
