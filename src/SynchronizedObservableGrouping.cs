@@ -64,7 +64,7 @@ namespace System.Collections.Specialized
                 get => _startIndexInclusive;
                 internal set
                 {
-                    if ((uint)value > (uint)CollectionCount)
+                    if ((uint) value > (uint) CollectionCount + 1)
                         throw new IndexOutOfRangeException();
                     _startIndexInclusive = value;
                     OnPropertyChanged();
@@ -81,7 +81,7 @@ namespace System.Collections.Specialized
                 {
                     if (StartIndexInclusive > value)
                         throw new ArgumentOutOfRangeException(nameof(value), "EndIndexExclusive must be greater or equal to StartIndexInclusive");
-                    if ((uint)value > (uint)CollectionCount)
+                    if ((uint) value > (uint) CollectionCount + 1)
                         throw new IndexOutOfRangeException();
                     _endIndexExclusive = value;
                     OnPropertyChanged();
@@ -245,12 +245,15 @@ namespace System.Collections.Specialized
             {
                 if (IsSorted)
                     throw new NotSupportedException("Can not move in a sorted collection.");
-                _isVerbose = false;
-                TValue item = this[oldIndex];
-                RemoveAt(oldIndex);
-                Insert(newIndex, item);
+                lock (SyncRoot)
+                {
+                    _collection.BaseCallCheckin();
+
+                    _collection.MoveItem(StartIndexInclusive + oldIndex, StartIndexInclusive + newIndex);
+
+                    _collection.BaseCallCheckout();
+                }
                 OnPropertyChanged("Item[]");
-                _isVerbose = true;
             }
 
             /// <inheritdoc />
