@@ -4,15 +4,15 @@ using System.Linq;
 
 namespace System.Collections.Specialized
 {
-    /*
-     * Documentation modified from Microsoft API docs at https://docs.microsoft.com/en-us/dotnet/api/
-     */
+    // Documentation modified from Microsoft API docs at https://docs.microsoft.com/en-us/dotnet/api/
     /// <summary>
     /// Represents a mutable collection of items grouped by keys.
     /// </summary>
     /// <typeparam name="TKey">The type of the keys.</typeparam>
     /// <typeparam name="TValue">The type of elements in the collection and grouping.</typeparam>
-    public interface IGroupCollection<TKey, TValue> : IEnumerable<TValue>
+    public interface IGroupCollection<TKey, TValue>
+        : IEnumerable<TValue>
+        where TKey : notnull
     {
         /// <summary>
         /// Gets the number of groups actually contained in the <see cref="IGroupCollection{TKey, TValue}"/>.
@@ -21,7 +21,7 @@ namespace System.Collections.Specialized
         /// <summary>
         /// Gets the grouping with the specified <paramref name="key"/>.
         /// </summary>
-        /// <param name="key">The key of the grouping to get. The value can not be null.</param>
+        /// <param name="key">The key of the grouping to get.</param>
         /// <returns>The grouping with the specified <paramref name="key"/>.</returns>
         /// <exception cref="ArgumentNullException">Thrown when the <paramref name="key"/> is null.</exception>
         /// <exception cref="KeyNotFoundException">Thrown when there is no grouping with the <paramref name="key"/> in the collection.</exception>
@@ -29,7 +29,7 @@ namespace System.Collections.Specialized
         /// <summary>
         /// Adds the <paramref name="value"/> to the existing grouping with the specified <paramref name="key"/>. If the <paramref name="key"/> does not exist, <see cref="Create"/>s the grouping and adds the <paramref name="value"/>.
         /// </summary>
-        /// <param name="key">The key of the targeted grouping. The value can not be null.</param>
+        /// <param name="key">The key of the targeted grouping.</param>
         /// <param name="value">The value to add to the grouping.</param>
         /// <exception cref="ArgumentNullException">Thrown when the <paramref name="key"/> is null.</exception>
         void AddOrCreate(in TKey key, in TValue value);
@@ -42,21 +42,21 @@ namespace System.Collections.Specialized
         /// <summary>
         /// Adds the <paramref name="values"/> to the existing grouping with the specified <paramref name="key"/>. If the <paramref name="key"/> does not exist, <see cref="Create"/>s the grouping and adds the <paramref name="values"/>.
         /// </summary>
-        /// <param name="key">The key of the targeted grouping. The value can not be null.</param>
+        /// <param name="key">The key of the targeted grouping.</param>
         /// <param name="values">The values to add to the grouping.</param>
         /// <exception cref="ArgumentNullException">Thrown when the <paramref name="key"/> is null.</exception>
         void AddOrCreate(in TKey key, IEnumerable<TValue> values);
         /// <summary>
-        /// Removes the first occurrence of a specific object from the <see cref="IGroupCollection{TKey, TValue}"/>.
+        /// Removes the grouping associated with the <paramref name="key"/> from the <see cref="IGroupCollection{TKey, TValue}"/>.
         /// </summary>
-        /// <param name="key">The key of the grouping to remove from the <see cref="IGroupCollection{TKey, TValue}"/>. The value can not be null.</param>
-        /// <returns><see cref="true"/> if item is successfully removed; otherwise, <see cref="false"/>. This method also returns <see cref="false"/> if item was not found in the original <see cref="IGroupCollection{TKey, TValue}"/>.</returns>
+        /// <param name="key">The key of the grouping to remove from the <see cref="IGroupCollection{TKey, TValue}"/>.</param>
+        /// <returns><see cref="true"/> if grouping is successfully removed; otherwise, <see cref="false"/>. This method also returns <see cref="false"/> if grouping was not found in the original <see cref="IGroupCollection{TKey, TValue}"/>.</returns>
         /// <exception cref="ArgumentNullException">Thrown when the <paramref name="key"/> is null.</exception>
         bool Remove(in TKey key);
         /// <summary>
         /// Creates an empty grouping with the specified <paramref name="key"/>.
         /// </summary>
-        /// <param name="key">The key of the grouping to get. The value can not be null.</param>
+        /// <param name="key">The key of the grouping to get.</param>
         /// <returns>The empty grouping created.</returns>
         /// <exception cref="ArgumentNullException">Thrown when the <paramref name="key"/> is null.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Thrown when a grouping with the same <paramref name="key"/> already exists.</exception>
@@ -99,6 +99,7 @@ namespace System.Collections.Specialized
     /// <typeparam name="TValue">The type of elements in the collection.</typeparam>
     public interface IObservableGrouping<out TKey, TValue>
         : IObservableCollection<TValue>, IGrouping<TKey, TValue>
+        where TKey : notnull
     { }
 
     /// <summary>
@@ -108,11 +109,12 @@ namespace System.Collections.Specialized
     /// <typeparam name="TValue">The type of elements in the collection.</typeparam>
     public interface IObservableGroupCollection<TKey, TValue>
         : IGroupCollection<TKey, TValue>, IObservableCollection<TValue>
+        where TKey : notnull
     {
         /// <summary>
         /// Gets the grouping with the specified <paramref name="key"/>.
         /// </summary>
-        /// <param name="key">The key of the grouping to get. The value can not be null.</param>
+        /// <param name="key">The key of the grouping to get.</param>
         /// <returns>The grouping with the specified <paramref name="key"/>.</returns>
         /// <exception cref="ArgumentNullException">Thrown when the <paramref name="key"/> is null.</exception>
         /// <exception cref="KeyNotFoundException">Thrown when there is no grouping with the <paramref name="key"/> in the collection.</exception>
