@@ -2,6 +2,10 @@
 
 Implementation of ObservableCollection that associates items with IGrouping so that the ObservableGroupCollection can be used in WPF Binding operations while synchronizing each group from a different datasource.
 
+# Build
+| Name | Badge |
+| Travis CI | ![](https://travis-ci.com/ProphetLamb-Organistion/GroupedObservableCollection.svg?branch=master) |
+
 # Features
 
 - [x] Collection operations e.g. Add, Move, Remove
