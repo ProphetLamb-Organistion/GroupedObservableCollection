@@ -14,7 +14,7 @@ Implementation of ObservableCollection that associates items with IGrouping so t
   - [x] Group operations e.g. AddOrCreate, Create, Remove, Contains
   - [x] Synchronized operations
   - [x] ObservableCollection Events
-  - [ ] Sorting for Keys and Values
+  - [x] Sorting for Keys and Values
   - [ ] SerializableAtttribute and ISerializable interface
 
 ### Test coverage
