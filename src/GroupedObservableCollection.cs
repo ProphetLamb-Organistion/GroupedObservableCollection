@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 
 namespace System.Collections.Specialized
 {
+    /// <inheritdoc cref="IObservableGroupCollection{TKey,TValue}" />
     [DebuggerDisplay("Groups = {GroupCount}, Items = {Count}")]
     public partial class ObservableGroupCollection<TKey, TValue>
         : ObservableCollection<TValue>, IObservableGroupCollection<TKey, TValue>
@@ -26,14 +27,38 @@ namespace System.Collections.Specialized
         #region Constructors
 
         /// <summary>
+        /// Initializes a new instance of <see cref="ObservableGroupCollection{TKey,TValue}"/>.
+        /// </summary>
+        public ObservableGroupCollection()
+        {
+            m_syncedGroups = new Dictionary<TKey, SynchronizedGrouping>();
+            m_keyEqualityComparer = EqualityComparer<TKey>.Default;
+        }
+
+        /// <summary>
         /// Initializes a new instance of <see cref="ObservableGroupCollection{TKey,TValue}"/> with the specified <see cref="IEqualityComparer{TKey}"/>.
         /// </summary>
         /// <param name="keyEqualityComparer">The equality comparer used to get the hashcode of keys, and to determine if two keys are equal.</param>
-        public ObservableGroupCollection(IEqualityComparer<TKey>? keyEqualityComparer = null)
+        public ObservableGroupCollection(IEqualityComparer<TKey>? keyEqualityComparer)
         {
-            m_keyEqualityComparer = keyEqualityComparer ?? EqualityComparer<TKey>.Default;
-            m_syncedGroups = new Dictionary<TKey, SynchronizedGrouping>(m_keyEqualityComparer);
+            // Providing no EqualityComparer instead of the default reduces branching slightly in Dictionary.
+            if (keyEqualityComparer is null)
+            {
+                m_syncedGroups = new Dictionary<TKey, SynchronizedGrouping>();
+                m_keyEqualityComparer = EqualityComparer<TKey>.Default;
+            }
+            else
+            {
+                m_syncedGroups = new Dictionary<TKey, SynchronizedGrouping>(keyEqualityComparer);
+                m_keyEqualityComparer = keyEqualityComparer;
+            }
         }
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="ObservableGroupCollection{TKey,TValue}"/> from existing <paramref name="groupings"/>.
+        /// </summary>
+        /// <param name="groupings">The data source of the collection.</param>
+        public ObservableGroupCollection(IEnumerable<IGrouping<TKey, TValue>?> groupings) : this(groupings, null) { }
 
         /// <summary>
         /// Initializes a new instance of <see cref="ObservableGroupCollection{TKey,TValue}"/> from existing <paramref name="groupings"/>, with the specified <see cref="IEqualityComparer{TKey}"/>.
