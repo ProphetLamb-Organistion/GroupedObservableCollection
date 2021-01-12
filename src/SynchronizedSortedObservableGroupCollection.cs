@@ -26,9 +26,9 @@ namespace System.Collections.Specialized
             protected internal SynchronizedSortedObservableGroupCollection(
                 IEnumerable<SynchronizedObservableGrouping>? source,
                 ObservableGroupingCollection<TKey, TValue> valuesCollection,
-                IEqualityComparer<TKey>? equalityComparer,
+                IEqualityComparer<TKey>? keyEqualityComparer,
                 IComparer<TKey> keyComparer)
-                : base(valuesCollection, equalityComparer)
+                : base(valuesCollection, keyEqualityComparer)
             {
                 Comparer = keyComparer;
                 _wrappedKeyComparer = Comparer<SynchronizedObservableGrouping>.Create((x, y) => keyComparer.Compare(x.Key, y.Key));
@@ -103,11 +103,7 @@ namespace System.Collections.Specialized
                 item.StartIndexInclusive = index;
                 lock (m_valuesCollection)
                 {
-                    m_valuesCollection.BaseCallCheckin();
-
-                    m_valuesCollection.OffsetAfterGroup(item, offset);
-
-                    m_valuesCollection.BaseCallCheckout();
+                    m_valuesCollection.Groupings.OffsetAfterGroup(item, offset);
                 }
             }
 
@@ -116,19 +112,12 @@ namespace System.Collections.Specialized
                 SynchronizedObservableGrouping item = this[index];
                 lock (m_valuesCollection)
                 {
-                    m_valuesCollection.BaseCallCheckin();
-
-                    m_valuesCollection.OffsetAfterGroup(item, item.Count);
+                    m_valuesCollection.Groupings.OffsetAfterGroup(item, item.Count);
 
                     m_keyDictionary.Remove(item.Key);
                     base.RemoveItem(index);
 
-                    for (int i = item.StartIndexInclusive; i < item.EndIndexExclusive; i++)
-                    {
-                        m_valuesCollection.RemoveAt(i);
-                    }
-
-                    m_valuesCollection.BaseCallCheckout();
+                    m_valuesCollection.RemoveRange(item.StartIndexInclusive, item.Count);
                 }
             }
 

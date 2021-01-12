@@ -77,7 +77,7 @@ namespace System.Collections.Specialized
         public virtual bool IsSorted => false;
 
         /// <inheritdoc />
-        IReadonlyObservableCollection<IObservableGrouping<TKey, TValue>> IObservableGroupingCollection<TKey, TValue>.Groupings => Groupings;
+        IObservableGroupCollection<TKey, TValue> IObservableGroupingCollection<TKey, TValue>.Groupings => Groupings;
 
         /// <inheritdoc cref="IObservableGroupingCollection{TKey,TValue}.Groupings" />
         public SynchronizedObservableGroupCollection Groupings => m_groupings;
@@ -93,11 +93,7 @@ namespace System.Collections.Specialized
         {
             var grouping = m_groupings.GetOrAdd(key, () => new SynchronizedObservableGrouping(key, this));
 
-            BaseCallCheckin();
-
-            GroupAddValue(grouping, value);
-
-            BaseCallCheckout();
+            GroupAdd(grouping, value);
         }
         
         /// <inheritdoc />
@@ -108,14 +104,10 @@ namespace System.Collections.Specialized
         {
             SynchronizedObservableGrouping grouping = m_groupings.GetOrAdd(key, () => new SynchronizedObservableGrouping(key, this));
 
-            BaseCallCheckin();
-
             foreach (TValue item in values)
             {
-                GroupAddValue(grouping, item);
+                GroupAdd(grouping, item);
             }
-
-            BaseCallCheckout();
         }
 
         /// <inheritdoc />
@@ -164,7 +156,7 @@ namespace System.Collections.Specialized
                 {
                     Items.Add(item);
                     grouping.EndIndexExclusive++;
-                    OffsetAfterGroup(grouping, 1);
+                    m_groupings.OffsetAfterGroup(grouping, 1);
                 }
             }
         }
@@ -175,27 +167,19 @@ namespace System.Collections.Specialized
         /// <param name="group">The group to which the item shall be added.</param>
         /// <param name="item">The item to add.</param>
         /// <param name="desiredIndex">The index at which the item should be added. -1 and group.Count add the item at the end of the group. Does not guarantee the eventual index of the item.</param>
-        protected virtual void GroupAddValue(SynchronizedObservableGrouping group, TValue item, int desiredIndex = -1)
+        protected virtual void GroupAdd(SynchronizedObservableGrouping group, TValue item, int desiredIndex = -1)
         {
             Debug.Assert(desiredIndex == -1 || (uint)desiredIndex <= (uint)group.Count, "desiredIndex == -1 || (uint)desiredIndex <= (uint)group.Count");
+
             group.EndIndexExclusive++;
-            OffsetAfterGroup(group, 1);
+            m_groupings.OffsetAfterGroup(group, 1);
+            
+            BaseCallCheckin();
             InsertItem( desiredIndex == -1 ? group.EndIndexExclusive - 1 /* EndIndexExclusive incremented before call */ : group.StartIndexInclusive + desiredIndex, item);
+            BaseCallCheckout();
         }
 
-        private void OffsetAfterGroup(in SynchronizedObservableGrouping emitter, int itemsCount)
-        {
-            IList<SynchronizedObservableGrouping> groups = m_groupings;
-            int index = groups.IndexOf(emitter);
-            if (index == -1)
-                throw new ArgumentException(nameof(emitter));
-            for (int i = index + 1; i < groups.Count; i++)
-            {
-                groups[i].EndIndexExclusive += itemsCount;
-                groups[i].StartIndexInclusive += itemsCount;
-            }
-        }
-
+        
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void ThrowOnIllegalBaseCall([CallerMemberName] string? callingFunction = null)
         {
@@ -209,6 +193,80 @@ namespace System.Collections.Specialized
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void BaseCallCheckout() => _throwOnBaseCall = true;
+
+        /// <summary>
+        /// Removes a section from the collection.
+        /// </summary>
+        /// <param name="startIndex">The index of the first element to remove.</param>
+        /// <param name="count">The number of element to remove</param>
+        protected virtual void RemoveRange(int startIndex, int count)
+        {
+            if (startIndex < 0)
+                throw new ArgumentOutOfRangeException(nameof(startIndex));
+            if (count < 0)
+                throw new ArgumentOutOfRangeException(nameof(count));
+            if (Count < startIndex + count)
+                throw new IndexOutOfRangeException();
+            TValue[] items = new TValue[count];
+            int index = startIndex + count - 1;
+            for (int i = count - 1; i >= 0; i--, index--)
+            {
+                items[i] = Items[index];
+                Items.RemoveAt(index);
+            }
+            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, items, startIndex));
+        }
+
+        /// <summary>
+        /// Inserts elements at the specified index.
+        /// </summary>
+        /// <param name="startIndex">The index at which to insert the first element.</param>
+        /// <param name="items">The collection of element to insert.</param>
+        /// <param name="itemsIndex">The index of the first element in the <paramref name="items"/> collection to insert.</param>
+        /// <param name="itemsCount">The number of elements to insert.</param>
+        protected virtual void InsertRange(int startIndex, IReadOnlyList<TValue> items, int itemsIndex, int itemsCount)
+        {
+            if ((uint)startIndex > (uint)Count)
+                throw new ArgumentOutOfRangeException(nameof(startIndex));
+            if (itemsIndex < 0)
+                throw new ArgumentOutOfRangeException(nameof(itemsIndex));
+            if (itemsCount < 0)
+                throw new ArgumentOutOfRangeException(nameof(itemsCount));
+            if (items.Count < itemsIndex + itemsCount)
+                throw new IndexOutOfRangeException();
+            int index = startIndex;
+            for (int i = itemsIndex; i < itemsCount; i++, index++)
+            {
+                Items.Insert(index, items[i]);
+            }
+            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, items, startIndex));
+        }
+        
+        /// <summary>
+        /// Moves a section of elements in the collection.
+        /// </summary>
+        /// <param name="oldIndex">The starting index of elements to move.</param>
+        /// <param name="newIndex">The starting index to which to move the items.</param>
+        /// <param name="count">The number of elements to move.</param>
+        protected virtual void MoveRange(int oldIndex, int newIndex, int count)
+        {
+            TValue[] items = new TValue[count];
+            var offsetStartIndex = oldIndex;
+            var offsetTargetIndex = newIndex;
+            for (var i = count - 1; i >= 0; i--) {
+                TValue item = Items[offsetStartIndex + i];
+                items[i] = item;
+
+                Items.RemoveAt(offsetStartIndex + i);
+                if (offsetTargetIndex > offsetStartIndex + i)
+                    offsetTargetIndex -= 1;
+
+                Items.Insert(offsetTargetIndex, item);            
+                if (offsetStartIndex > offsetTargetIndex)
+                    offsetStartIndex += 1;            
+            }
+            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Move, items, newIndex, oldIndex));
+        }
 
         #endregion
 

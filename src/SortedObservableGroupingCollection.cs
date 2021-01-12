@@ -101,14 +101,14 @@ namespace System.Collections.Specialized
         #region Overrides
 
         /// <inheritdoc />
-        protected override void GroupAddValue(SynchronizedObservableGrouping group, TValue item, int desiredIndex = -1)
+        protected override void GroupAdd(SynchronizedObservableGrouping group, TValue item, int desiredIndex = -1)
         {
             int index = CollectionSortHelper<TValue>.BinarySearch(this, 0, group.Count, item, Comparer);
             if (index < 0)
                 index = ~index; // No result: insert between greater and smaller
             else
                 index++; // Found equal item: insert after existing
-            base.GroupAddValue(group, item, index);
+            base.GroupAdd(group, item, index);
         }
 
         protected override void SetItem(int index, TValue item)

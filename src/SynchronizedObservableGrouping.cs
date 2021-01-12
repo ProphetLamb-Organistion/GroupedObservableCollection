@@ -163,13 +163,8 @@ namespace System.Collections.Specialized
                 }
                 
                 lock (m_collection)
-                {
-                    m_collection.BaseCallCheckin();
+                    m_collection.GroupAdd(this, item, index);
 
-                    m_collection.GroupAddValue(this, item, index);
-
-                    m_collection.BaseCallCheckout();
-                }
                 OnPropertyChanged("Count");
                 OnPropertyChanged("Item[]");
             }
@@ -180,15 +175,8 @@ namespace System.Collections.Specialized
                 _isVerbose = false;
                 lock (m_collection)
                 {
-                    m_collection.BaseCallCheckin();
-
-                    for (int i = EndIndexExclusive - 1; i >= StartIndexInclusive; i--)
-                    {
-                        m_collection.RemoveAt(i);
-                    }
-                    m_collection.OffsetAfterGroup(this, -Count);
-
-                    m_collection.BaseCallCheckin();
+                    m_collection.RemoveRange(StartIndexInclusive, Count);
+                    m_collection.Groupings.OffsetAfterGroup(this, -Count);
                 }
                 _isVerbose = true;
 
@@ -234,11 +222,9 @@ namespace System.Collections.Specialized
                 lock (m_collection)
                 {
                     m_collection.BaseCallCheckin();
-
-                    m_collection.RemoveAt(index+StartIndexInclusive);
-                    m_collection.OffsetAfterGroup(this, -1);
-
+                    m_collection.RemoveAt(index + StartIndexInclusive);
                     m_collection.BaseCallCheckout();
+                    m_collection.Groupings.OffsetAfterGroup(this, -1);
                 }
                 EndIndexExclusive--;
                 OnPropertyChanged("Count");
@@ -253,9 +239,7 @@ namespace System.Collections.Specialized
                 lock (m_collection)
                 {
                     m_collection.BaseCallCheckin();
-
                     m_collection.MoveItem(StartIndexInclusive + oldIndex, StartIndexInclusive + newIndex);
-
                     m_collection.BaseCallCheckout();
                 }
                 OnPropertyChanged("Item[]");
@@ -270,12 +254,12 @@ namespace System.Collections.Specialized
                     throw new ArgumentOutOfRangeException();
                 if (array.Length < arrayIndex + Count)
                     throw new IndexOutOfRangeException();
-                for (int i = StartIndexInclusive; i < EndIndexExclusive; i++)
+                lock (m_collection)
                 {
-                    TValue item;
-                    lock (m_collection)
-                        item = m_collection[i];
-                    array[arrayIndex++] = item;
+                    for (int i = StartIndexInclusive; i < EndIndexExclusive; i++)
+                    {
+                        array[arrayIndex++] = m_collection[i];
+                    }
                 }
             }
 
@@ -288,12 +272,12 @@ namespace System.Collections.Specialized
                     throw new ArgumentOutOfRangeException();
                 if (array.Length < index + Count)
                     throw new IndexOutOfRangeException();
-                for (int i = StartIndexInclusive; i < EndIndexExclusive; i++)
+                lock (m_collection)
                 {
-                    TValue item;
-                    lock (m_collection)
-                        item = m_collection[i];
-                    array.SetValue(item, index++);
+                    for (int i = StartIndexInclusive; i < EndIndexExclusive; i++)
+                    {
+                        array.SetValue(m_collection[i], index++);
+                    }
                 }
             }
             
@@ -323,9 +307,7 @@ namespace System.Collections.Specialized
                 lock (m_collection)
                 {
                     m_collection.BaseCallCheckin();
-
                     m_collection[index + StartIndexInclusive] = item;
-
                     m_collection.BaseCallCheckout();
                 }
                 OnPropertyChanged("Item[]");
