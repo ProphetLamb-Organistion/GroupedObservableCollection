@@ -6,18 +6,15 @@ using System.Runtime.CompilerServices;
 
 namespace System.Collections.Specialized
 {
-    /// <inheritdoc cref="IObservableGroupCollection{TKey,TValue}" />
-    [DebuggerDisplay("Groups = {GroupCount}, Items = {Count}")]
+    /// <inheritdoc cref="IObservableGroupingCollection{TKey,TValue}" />
+    [DebuggerDisplay("Groups = {m_groupings.Count}, Items = {Count}")]
     public partial class ObservableGroupingCollection<TKey, TValue>
-        : ObservableCollection<TValue>, IObservableGroupCollection<TKey, TValue>
+        : ObservableCollection<TValue>, IObservableGroupingCollection<TKey, TValue>
         where TKey : notnull
     {
         #region Fields
 
-        protected List<SynchronizedObservableGrouping> m_groups = new List<SynchronizedObservableGrouping>();
-        protected readonly IDictionary<TKey, SynchronizedObservableGrouping> m_syncedGroups;
-
-        protected readonly IEqualityComparer<TKey> m_keyEqualityComparer;
+        protected SynchronizedObservableGroupCollection m_groupings;
 
         private bool _throwOnBaseCall = true;
 
@@ -30,8 +27,7 @@ namespace System.Collections.Specialized
         /// </summary>
         public ObservableGroupingCollection()
         {
-            m_syncedGroups = new Dictionary<TKey, SynchronizedObservableGrouping>();
-            m_keyEqualityComparer = EqualityComparer<TKey>.Default;
+            m_groupings = new SynchronizedObservableGroupCollection(this, null);
         }
 
         /// <summary>
@@ -40,16 +36,7 @@ namespace System.Collections.Specialized
         /// <param name="keyEqualityComparer">The equality comparer used to get the hashcode of keys, and to determine if two keys are equal.</param>
         public ObservableGroupingCollection(IEqualityComparer<TKey>? keyEqualityComparer)
         {
-            if (keyEqualityComparer is null)
-            {
-                m_syncedGroups = new Dictionary<TKey, SynchronizedObservableGrouping>(); // Providing no EqualityComparer instead of the default reduces branching slightly in Dictionary.
-                m_keyEqualityComparer = EqualityComparer<TKey>.Default;
-            }
-            else
-            {
-                m_syncedGroups = new Dictionary<TKey, SynchronizedObservableGrouping>(keyEqualityComparer);
-                m_keyEqualityComparer = keyEqualityComparer;
-            }
+            m_groupings = new SynchronizedObservableGroupCollection(this, keyEqualityComparer);
         }
 
         /// <summary>
@@ -75,17 +62,13 @@ namespace System.Collections.Specialized
         #region Properties
 
         /// <inheritdoc />
-        public int GroupCount => m_groups.Count;
+        IObservableGrouping<TKey, TValue> IObservableGroupingCollection<TKey, TValue>.this[in TKey key] => this[key];
 
         /// <inheritdoc />
-        IObservableGrouping<TKey, TValue> IObservableGroupCollection<TKey, TValue>.this[in TKey key] => this[key];
+        IGrouping<TKey, TValue> IGroupingCollection<TKey, TValue>.this[in TKey key] => this[key];
 
-        /// <inheritdoc />
-        IGrouping<TKey, TValue> IGroupCollection<TKey, TValue>.this[in TKey key] => this[key];
-
-        /// <inheritdoc cref="IObservableGroupCollection{TKey,TValue}.this"/>
-        public SynchronizedObservableGrouping this[in TKey key] =>
-            GroupTryGet(key, out SynchronizedObservableGrouping group) ? group : throw new KeyNotFoundException();
+        /// <inheritdoc cref="IObservableGroupingCollection{TKey,TValue}.this"/>
+        public SynchronizedObservableGrouping this[in TKey key] => m_groupings[key];
 
 
         /// <summary>
@@ -94,126 +77,69 @@ namespace System.Collections.Specialized
         public virtual bool IsSorted => false;
 
         /// <inheritdoc />
-        public IReadonlyObservableCollection<TKey> Groupings { get; }
+        IReadonlyObservableCollection<IObservableGrouping<TKey, TValue>> IObservableGroupingCollection<TKey, TValue>.Groupings => Groupings;
+
+        /// <inheritdoc cref="IObservableGroupingCollection{TKey,TValue}.Groupings" />
+        public SynchronizedObservableGroupCollection Groupings => m_groupings;
+
+        IReadOnlyList<IGrouping<TKey, TValue>> IGroupingCollection<TKey, TValue>.Groups => m_groupings;
 
         #endregion
 
         #region Public members
-        
+
         /// <inheritdoc />
-        public void AddOrCreate(in TKey key, in TValue value)
+        public void Add(TKey key, TValue value)
         {
+            var grouping = m_groupings.GetOrAdd(key, () => new SynchronizedObservableGrouping(key, this));
+
             BaseCallCheckin();
 
-            if (!GroupTryGet(key, out SynchronizedObservableGrouping group))
-            {
-                group = new SynchronizedObservableGrouping(key, this);
-                GroupAdd(group);
-            }
-            GroupAddValue(group, value);
+            GroupAddValue(grouping, value);
 
             BaseCallCheckout();
         }
         
         /// <inheritdoc />
-        public void AddOrCreate(IGrouping<TKey, TValue> grouping) => AddOrCreate(grouping.Key, grouping);
+        public void Add(IGrouping<TKey, TValue> grouping) => Add(grouping.Key, grouping);
         
         /// <inheritdoc />
-        public void AddOrCreate(in TKey key, IEnumerable<TValue> values)
+        public void Add(TKey key, IEnumerable<TValue> values)
         {
+            SynchronizedObservableGrouping grouping = m_groupings.GetOrAdd(key, () => new SynchronizedObservableGrouping(key, this));
+
             BaseCallCheckin();
 
-            if (!GroupTryGet(key, out SynchronizedObservableGrouping group))
+            foreach (TValue item in values)
             {
-                group = new SynchronizedObservableGrouping(key, this);
-                GroupAdd(group);
-            }
-
-            using IEnumerator<TValue> en = values.GetEnumerator();
-
-            while (en.MoveNext())
-            {
-                GroupAddValue(group, en.Current);
+                GroupAddValue(grouping, item);
             }
 
             BaseCallCheckout();
         }
 
         /// <inheritdoc />
-        IObservableGrouping<TKey, TValue> IGroupCollection<TKey, TValue>.Create(in TKey key) => Create(key);
+        IGrouping<TKey, TValue> IGroupingCollection<TKey, TValue>.Create(in TKey key) => Create(key);
 
-        /// <inheritdoc cref="IGroupCollection{TKey,TValue}.Create" />
+        /// <inheritdoc cref="IGroupingCollection{TKey,TValue}.Create" />
         public SynchronizedObservableGrouping Create(in TKey key)
         {
-            BaseCallCheckin();
-
-            if (m_syncedGroups.ContainsKey(key))
+            if (m_groupings.ContainsKey(key))
                 throw new ArgumentOutOfRangeException(nameof(key));
+            
             SynchronizedObservableGrouping created = new SynchronizedObservableGrouping(key, this);
-            GroupAdd(created);
+            m_groupings.Add(created);
 
-            BaseCallCheckout();
             return created;
         }
         
         /// <inheritdoc />
         public bool Remove(in TKey key)
         {
-            if (!GroupTryGet(key, out SynchronizedObservableGrouping group))
+            if (!m_groupings.TryGetValue(key, out SynchronizedObservableGrouping group))
                 return false;
-            BaseCallCheckin();
-
-            // Remove grouping definition
-            OffsetAfterGroup(group, group.StartIndexInclusive - group.EndIndexExclusive);
-            GroupRemove(group);
-            // Remove items of removed grouping
-            for (int i = group.EndIndexExclusive - 1; i >= group.StartIndexInclusive; i--)
-            {
-                RemoveAt(i);
-            }
-
-            BaseCallCheckout();
+            m_groupings.Remove(group);
             return true;
-        }
-        
-        /// <inheritdoc />
-        bool IGroupCollection<TKey, TValue>.TryGetGrouping(in TKey key, out IGrouping<TKey, TValue> grouping)
-        {
-            bool result = GroupTryGet(key, out SynchronizedObservableGrouping g);
-            grouping = g;
-            return result;
-        }
-        
-        /// <inheritdoc />
-        public bool TryGetGrouping(in TKey key, out IObservableGrouping<TKey, TValue> grouping)
-        {
-            bool result = GroupTryGet(key, out SynchronizedObservableGrouping g);
-            grouping = g;
-            return result;
-        }
-
-        /// <inheritdoc cref="IGroupCollection{TKey,TValue}.TryGetGrouping" />
-        public bool TryGetGrouping(in TKey key, out SynchronizedObservableGrouping observableGrouping) => GroupTryGet(key, out observableGrouping);
-        
-        /// <inheritdoc />
-        public bool ContainsKey(in TKey key)
-        {
-            return !(key is null) && GroupTryGet(key, out _);
-        }
-
-        /// <summary>
-        /// Returns groupings in the <see cref="IObservableGrouping{TKey, TValue}"/>, filtered based on a predicate.
-        /// </summary>
-        /// <param name="predicate">A function to test each grouping for a condition.</param>
-        /// <returns>An <see cref="IEnumerable{IObservableGrouping{TKey, TValue}}"/> that contains groupings from the <see cref="IObservableGrouping{TKey, TValue}"/> that satisfy the condition.</returns>
-        public IEnumerable<SynchronizedObservableGrouping> EnumerateGroupings()
-        {
-            // Prevent caller code from casting to List<> and modifying m_groups.
-            using List<SynchronizedObservableGrouping>.Enumerator en = m_groups.GetEnumerator();
-            while (en.MoveNext())
-            {
-                yield return en.Current!;
-            }
         }
 
         #endregion
@@ -228,49 +154,19 @@ namespace System.Collections.Specialized
                     continue;
                 if (g.Key is null)
                     throw new NullReferenceException("IGrouping.Key can not be null.");
-                SynchronizedObservableGrouping group = new SynchronizedObservableGrouping(g.Key, this);
-                GroupAdd(group);
+                SynchronizedObservableGrouping grouping = new SynchronizedObservableGrouping(g.Key, this)
+                { 
+                    EndIndexExclusive = Count,
+                    StartIndexInclusive = Count
+                };
+                m_groupings.Add(grouping);
                 foreach (TValue item in g)
                 {
                     Items.Add(item);
-                    group.EndIndexExclusive++;
+                    grouping.EndIndexExclusive++;
+                    OffsetAfterGroup(grouping, 1);
                 }
-                OffsetAfterGroup(group, group.Count);
             }
-        }
-
-        /// <summary>
-        /// Adds the specific <see cref="SynchronizedObservableGrouping"/> to the collection
-        /// </summary>
-        /// <param name="observableGrouping">The grouping to add.</param>
-        protected virtual void GroupAdd(in SynchronizedObservableGrouping observableGrouping)
-        {
-            m_syncedGroups.Add(observableGrouping.Key, observableGrouping);
-            m_groups.Add(observableGrouping);
-        }
-
-        /// <summary>
-        /// Removes the specific <see cref="SynchronizedObservableGrouping"/> with all items from the collection.
-        /// </summary>
-        /// <param name="observableGrouping">The grouping to remove.</param>
-        protected virtual void GroupRemove(in SynchronizedObservableGrouping observableGrouping)
-        {
-            m_syncedGroups.Remove(observableGrouping.Key);
-            m_groups.Remove(observableGrouping);
-        }
-
-        /// <summary>
-        /// Gets the grouping associated with the specified <paramref name="key"/>.
-        /// </summary>
-        /// <param name="key">The key whose value to get.</param>
-        /// <param name="syncedObservableGrouping">When this method returns, the grouping associated with the specified <paramref name="key"/>, if the <paramref name="key"/> is found; otherwise, the default value for the type of the value parameter. This parameter is passed uninitialized.</param>
-        /// <returns><see cref="true"/> if the <see cref="IObservableGrouping{TKey, TValue}"/> contains an grouping with the specified <paramref name="key"/>; otherwise, <see cref="false"/>.</returns>
-        protected virtual bool GroupTryGet(in TKey key, out SynchronizedObservableGrouping syncedObservableGrouping)
-        {
-            if (key is null)
-                throw new ArgumentNullException(nameof(key));
-
-            return m_syncedGroups.TryGetValue(key, out syncedObservableGrouping);
         }
 
         /// <summary>
@@ -284,28 +180,28 @@ namespace System.Collections.Specialized
             Debug.Assert(desiredIndex == -1 || (uint)desiredIndex <= (uint)group.Count, "desiredIndex == -1 || (uint)desiredIndex <= (uint)group.Count");
             group.EndIndexExclusive++;
             OffsetAfterGroup(group, 1);
-            InsertItem( desiredIndex == -1 ? group.EndIndexExclusive - 1 : group.StartIndexInclusive + desiredIndex, item);
+            InsertItem( desiredIndex == -1 ? group.EndIndexExclusive - 1 /* EndIndexExclusive incremented before call */ : group.StartIndexInclusive + desiredIndex, item);
         }
 
         private void OffsetAfterGroup(in SynchronizedObservableGrouping emitter, int itemsCount)
         {
-            IList<SynchronizedObservableGrouping> groups = m_groups;
+            IList<SynchronizedObservableGrouping> groups = m_groupings;
             int index = groups.IndexOf(emitter);
             if (index == -1)
                 throw new ArgumentException(nameof(emitter));
             for (int i = index + 1; i < groups.Count; i++)
             {
-                groups[i].StartIndexInclusive += itemsCount;
                 groups[i].EndIndexExclusive += itemsCount;
+                groups[i].StartIndexInclusive += itemsCount;
             }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected void ThrowOnIllegalBaseCall([CallerMemberName] string callingFunction = null)
+        protected void ThrowOnIllegalBaseCall([CallerMemberName] string? callingFunction = null)
         {
             if (_throwOnBaseCall)
                 throw new NotSupportedException(
-                    "The operation \"" + callingFunction + "\" is not supported for GroupedObservableCollection. Use functions and properties exposed by IGroupedObservableCollection.");
+                    "The operation \"" + callingFunction + "\" is not supported in GroupedObservableCollection.");
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -324,10 +220,7 @@ namespace System.Collections.Specialized
         protected override void ClearItems()
         {
             base.ClearItems();
-
-            // Clear groups
-            m_syncedGroups.Clear();
-            m_groups.Clear();
+            m_groupings.Clear();
         }
 
         /// <summary>

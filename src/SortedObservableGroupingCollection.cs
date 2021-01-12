@@ -17,43 +17,21 @@ namespace System.Collections.Specialized
     {
         #region Fields
 
-        private readonly IComparer<SynchronizedObservableGrouping>? _wrappedKeyComparer;
+        private SynchronizedSortedObservableGroupCollection _groups;
 
         #endregion
 
         #region Constructors
-
-        /// <inheritdoc />
-        public SortedObservableGroupingCollection()
-        { }
-        
-        /// <inheritdoc />
-        public SortedObservableGroupingCollection(IEqualityComparer<TKey> keyEqualityComparer)
-            : base(keyEqualityComparer)
-        { }
-        
-        /// <inheritdoc />
-        public SortedObservableGroupingCollection(IEnumerable<IGrouping<TKey, TValue>> groupings)
-            : base(groupings)
-        { }
-        
-        /// <inheritdoc />
-        public SortedObservableGroupingCollection(IEnumerable<IGrouping<TKey, TValue>> groupings, IEqualityComparer<TKey> keyEqualityComparer)
-            : base(groupings, keyEqualityComparer)
-        { }
 
         /// <summary>
         /// Initializes a new instance of <see cref="SortedObservableGroupingCollection{TKey,TValue}"/> with the specified key, and value comparer.
         /// </summary>
         /// <param name="keyComparer">The comparer used to sort keys.</param>
         /// <param name="valueComparer">The comparer used to sort values.</param>
-        public SortedObservableGroupingCollection(IComparer<TKey>? keyComparer, IComparer<TValue>? valueComparer)
+        public SortedObservableGroupingCollection(IComparer<TKey> keyComparer, IComparer<TValue> valueComparer)
         {
-            KeyComparer = keyComparer;
-            ValueComparer = valueComparer;
-            _wrappedKeyComparer = keyComparer is null
-                ? null
-                : Comparer<SynchronizedObservableGrouping>.Create((x, y) => KeyComparer!.Compare(x.Key, y.Key));
+            m_groupings = _groups = new SynchronizedSortedObservableGroupCollection(m_groupings, this, null, keyComparer);
+            Comparer = valueComparer;
         }
 
         /// <summary>
@@ -64,12 +42,12 @@ namespace System.Collections.Specialized
         /// <param name="valueComparer">The comparer used to sort values.</param>
         public SortedObservableGroupingCollection(
             IEqualityComparer<TKey> keyEqualityComparer,
-            IComparer<TKey>? keyComparer,
-            IComparer<TValue>? valueComparer)
+            IComparer<TKey> keyComparer,
+            IComparer<TValue> valueComparer)
             : base(keyEqualityComparer)
         {
-            KeyComparer = keyComparer;
-            ValueComparer = valueComparer;
+            m_groupings = _groups = new SynchronizedSortedObservableGroupCollection(m_groupings, this, keyEqualityComparer, keyComparer);
+            Comparer = valueComparer;
         }
 
         /// <summary>
@@ -80,12 +58,12 @@ namespace System.Collections.Specialized
         /// <param name="valueComparer">The comparer used to sort values.</param>
         public SortedObservableGroupingCollection(
             IEnumerable<IGrouping<TKey, TValue>?> groupings,
-            IComparer<TKey>? keyComparer,
-            IComparer<TValue>? valueComparer)
+            IComparer<TKey> keyComparer,
+            IComparer<TValue> valueComparer)
             : base(groupings)
         {
-            KeyComparer = keyComparer;
-            ValueComparer = valueComparer;
+            m_groupings = _groups = new SynchronizedSortedObservableGroupCollection(m_groupings, this, null, keyComparer);
+            Comparer = valueComparer;
         }
 
         /// <summary>
@@ -98,12 +76,12 @@ namespace System.Collections.Specialized
         public SortedObservableGroupingCollection(
             IEnumerable<IGrouping<TKey, TValue>?> groupings,
             IEqualityComparer<TKey> keyEqualityComparer,
-            IComparer<TKey>? keyComparer,
-            IComparer<TValue>? valueComparer)
+            IComparer<TKey> keyComparer,
+            IComparer<TValue> valueComparer)
             : base(groupings, keyEqualityComparer)
         {
-            KeyComparer = keyComparer;
-            ValueComparer = valueComparer;
+            m_groupings = _groups = new SynchronizedSortedObservableGroupCollection(m_groupings, this, keyEqualityComparer, keyComparer);
+            Comparer = valueComparer;
         }
 
         #endregion
@@ -111,16 +89,12 @@ namespace System.Collections.Specialized
         #region Properties
 
         /// <summary>
-        /// Returns the instance of comparer used to sort keys.
+        /// Returns the instance of the comparer used to compare values.
         /// </summary>
-        public IComparer<TKey>? KeyComparer { get; }
-        /// <summary>
-        /// Returns the instance of the comparer used to sort values.
-        /// </summary>
-        public IComparer<TValue>? ValueComparer { get; }
+        public IComparer<TValue> Comparer { get; }
 
         /// <inheritdoc />
-        public override bool IsSorted => ValueComparer != null;
+        public override bool IsSorted => true;
 
         #endregion
 
@@ -129,46 +103,12 @@ namespace System.Collections.Specialized
         /// <inheritdoc />
         protected override void GroupAddValue(SynchronizedObservableGrouping group, TValue item, int desiredIndex = -1)
         {
-            int index = desiredIndex;
-            // Nothing to sort or no comparer
-            if (group.Count > 1 && !(ValueComparer is null))
-            {
-                index = CollectionSortHelper<TValue>.BinarySearch(
-                    this,
-                    0,
-                    group.Count, 
-                    item,
-                    ValueComparer);
-                if (index < 0) // Not found
-                    index = ~index;
-            }
+            int index = CollectionSortHelper<TValue>.BinarySearch(this, 0, group.Count, item, Comparer);
+            if (index < 0)
+                index = ~index; // No result: insert between greater and smaller
+            else
+                index++; // Found equal item: insert after existing
             base.GroupAddValue(group, item, index);
-        }
-
-        /// <inheritdoc />
-        protected override void GroupAdd(in SynchronizedObservableGrouping observableGrouping)
-        {
-            // Add group
-            base.GroupAdd(in observableGrouping);
-
-            if (KeyComparer is null)
-                return;
-            // Find sorted position
-            int index = m_groups.Count - 1;
-            int swapIndex = CollectionSortHelper<SynchronizedObservableGrouping>.BinarySearch(
-                m_groups,
-                0,
-                index,
-                observableGrouping,
-                _wrappedKeyComparer);
-            if (swapIndex < 0) // Not found
-                swapIndex = ~swapIndex;
-            
-            BaseCallCheckin();
-
-            this.MoveItem(index, swapIndex);
-
-            BaseCallCheckout();
         }
 
         protected override void SetItem(int index, TValue item)

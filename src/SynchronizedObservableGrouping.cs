@@ -8,12 +8,12 @@ namespace System.Collections.Specialized
     public partial class ObservableGroupingCollection<TKey, TValue>
     {
         [DebuggerDisplay("Count = {Count}, Range=[{StartIndexInclusive}..{EndIndexExclusive}), Key = {Key}")]
-        public sealed class SynchronizedObservableGrouping
+        public class SynchronizedObservableGrouping
             : IObservableGrouping<TKey, TValue>, ICollection
         {
             #region Fields
 
-            private readonly ObservableGroupingCollection<TKey, TValue> _collection;
+            protected readonly ObservableGroupingCollection<TKey, TValue> m_collection;
             private bool _isVerbose = true;
             private int _startIndexInclusive;
             private int _endIndexExclusive;
@@ -27,8 +27,8 @@ namespace System.Collections.Specialized
 
             public SynchronizedObservableGrouping(
                 in TKey key,
-                ObservableGroupingCollection<TKey, TValue> collection) :
-                this(key, collection.Count, collection.Count, collection)
+                ObservableGroupingCollection<TKey, TValue> collection)
+                : this(key, collection.Count, collection.Count, collection)
             { }
 
             public SynchronizedObservableGrouping(
@@ -40,8 +40,8 @@ namespace System.Collections.Specialized
                 Key = key;
                 _startIndexInclusive = startIndexInclusive;
                 _endIndexExclusive = endIndexExclusive;
-                SyncRoot =_collection = collection ?? throw new ArgumentNullException(nameof(collection));
-                _collection.CollectionChanged += CollectionChangedEventSubscriber;
+                SyncRoot = m_collection = collection ?? throw new ArgumentNullException(nameof(collection));
+                m_collection.CollectionChanged += CollectionChangedEventSubscriber;
             }
 
             #endregion
@@ -59,6 +59,8 @@ namespace System.Collections.Specialized
                 get => _startIndexInclusive;
                 internal set
                 {
+                    if (EndIndexExclusive < value)
+                        throw new ArgumentOutOfRangeException(nameof(value), "EndIndexExclusive must be greater or equal to StartIndexInclusive");
                     if ((uint) value > (uint) CollectionCount + 1)
                         throw new IndexOutOfRangeException();
                     _startIndexInclusive = value;
@@ -74,8 +76,6 @@ namespace System.Collections.Specialized
                 get => _endIndexExclusive;
                 internal set
                 {
-                    if (StartIndexInclusive > value)
-                        throw new ArgumentOutOfRangeException(nameof(value), "EndIndexExclusive must be greater or equal to StartIndexInclusive");
                     if ((uint) value > (uint) CollectionCount + 1)
                         throw new IndexOutOfRangeException();
                     _endIndexExclusive = value;
@@ -99,8 +99,8 @@ namespace System.Collections.Specialized
             {
                 get
                 {
-                    lock (_collection)
-                        return _collection.IsSorted;
+                    lock (m_collection)
+                        return m_collection.IsSorted;
                 }
             }
 
@@ -114,8 +114,8 @@ namespace System.Collections.Specialized
                 {
                     if ((uint)index >= (uint)Count)
                         throw new ArgumentOutOfRangeException(nameof(index));
-                    lock (_collection)
-                        return _collection[index + StartIndexInclusive];
+                    lock (m_collection)
+                        return m_collection[index + StartIndexInclusive];
                 }
                 set
                 {
@@ -130,8 +130,8 @@ namespace System.Collections.Specialized
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get
                 {
-                    lock (_collection)
-                        return _collection.Count;
+                    lock (m_collection)
+                        return m_collection.Count;
                 }   
             }
 
@@ -142,8 +142,8 @@ namespace System.Collections.Specialized
             /// <inheritdoc />
             public void Add(TValue item)
             {
-                lock (_collection)
-                    _collection.AddOrCreate(Key, item);
+                lock (m_collection)
+                    m_collection.Add(Key, item);
 
                 OnPropertyChanged("Count");
                 OnPropertyChanged("Item[]");
@@ -162,13 +162,13 @@ namespace System.Collections.Specialized
                     return;
                 }
                 
-                lock (_collection)
+                lock (m_collection)
                 {
-                    _collection.BaseCallCheckin();
+                    m_collection.BaseCallCheckin();
 
-                    _collection.GroupAddValue(this, item, index);
+                    m_collection.GroupAddValue(this, item, index);
 
-                    _collection.BaseCallCheckout();
+                    m_collection.BaseCallCheckout();
                 }
                 OnPropertyChanged("Count");
                 OnPropertyChanged("Item[]");
@@ -178,17 +178,17 @@ namespace System.Collections.Specialized
             public void Clear()
             {
                 _isVerbose = false;
-                lock (_collection)
+                lock (m_collection)
                 {
-                    _collection.BaseCallCheckin();
+                    m_collection.BaseCallCheckin();
 
                     for (int i = EndIndexExclusive - 1; i >= StartIndexInclusive; i--)
                     {
-                        _collection.RemoveAt(i);
+                        m_collection.RemoveAt(i);
                     }
-                    _collection.OffsetAfterGroup(this, -Count);
+                    m_collection.OffsetAfterGroup(this, -Count);
 
-                    _collection.BaseCallCheckin();
+                    m_collection.BaseCallCheckin();
                 }
                 _isVerbose = true;
 
@@ -218,8 +218,8 @@ namespace System.Collections.Specialized
                 for (int i = StartIndexInclusive; i < EndIndexExclusive; i++)
                 {
                     TValue value;
-                    lock (_collection)
-                        value = _collection[i];
+                    lock (m_collection)
+                        value = m_collection[i];
                     if (valueComparer.Equals(item, value))
                         return i - StartIndexInclusive;
                 }
@@ -231,14 +231,14 @@ namespace System.Collections.Specialized
             {
                 if ((uint)index >= (uint)Count)
                     throw new ArgumentOutOfRangeException(nameof(index));
-                lock (_collection)
+                lock (m_collection)
                 {
-                    _collection.BaseCallCheckin();
+                    m_collection.BaseCallCheckin();
 
-                    _collection.RemoveAt(index+StartIndexInclusive);
-                    _collection.OffsetAfterGroup(this, -1);
+                    m_collection.RemoveAt(index+StartIndexInclusive);
+                    m_collection.OffsetAfterGroup(this, -1);
 
-                    _collection.BaseCallCheckout();
+                    m_collection.BaseCallCheckout();
                 }
                 EndIndexExclusive--;
                 OnPropertyChanged("Count");
@@ -250,13 +250,13 @@ namespace System.Collections.Specialized
             {
                 if (IsSorted)
                     throw new NotSupportedException("Can not move in a sorted collection.");
-                lock (_collection)
+                lock (m_collection)
                 {
-                    _collection.BaseCallCheckin();
+                    m_collection.BaseCallCheckin();
 
-                    _collection.MoveItem(StartIndexInclusive + oldIndex, StartIndexInclusive + newIndex);
+                    m_collection.MoveItem(StartIndexInclusive + oldIndex, StartIndexInclusive + newIndex);
 
-                    _collection.BaseCallCheckout();
+                    m_collection.BaseCallCheckout();
                 }
                 OnPropertyChanged("Item[]");
             }
@@ -273,8 +273,8 @@ namespace System.Collections.Specialized
                 for (int i = StartIndexInclusive; i < EndIndexExclusive; i++)
                 {
                     TValue item;
-                    lock (_collection)
-                        item = _collection[i];
+                    lock (m_collection)
+                        item = m_collection[i];
                     array[arrayIndex++] = item;
                 }
             }
@@ -291,8 +291,8 @@ namespace System.Collections.Specialized
                 for (int i = StartIndexInclusive; i < EndIndexExclusive; i++)
                 {
                     TValue item;
-                    lock (_collection)
-                        item = _collection[i];
+                    lock (m_collection)
+                        item = m_collection[i];
                     array.SetValue(item, index++);
                 }
             }
@@ -303,8 +303,8 @@ namespace System.Collections.Specialized
                 for (int i = StartIndexInclusive; i < EndIndexExclusive; i++)
                 {
                     TValue item;
-                    lock (_collection)
-                        item = _collection[i];
+                    lock (m_collection)
+                        item = m_collection[i];
                     yield return item;
                 }
             }
@@ -320,13 +320,13 @@ namespace System.Collections.Specialized
             {
                 if (IsSorted)
                     throw new NotSupportedException("Can not assign in a sorted collection.");
-                lock (_collection)
+                lock (m_collection)
                 {
-                    _collection.BaseCallCheckin();
+                    m_collection.BaseCallCheckin();
 
-                    _collection[index + StartIndexInclusive] = item;
+                    m_collection[index + StartIndexInclusive] = item;
 
-                    _collection.BaseCallCheckout();
+                    m_collection.BaseCallCheckout();
                 }
                 OnPropertyChanged("Item[]");
             }
@@ -369,7 +369,7 @@ namespace System.Collections.Specialized
                     return;
                 if (CollectionChanged is null)
                     return;
-                if (!ReferenceEquals(sender, _collection))
+                if (!ReferenceEquals(sender, m_collection))
                     throw new InvalidOperationException("Sender must be the synchronized collection.");
                 int index;
                 switch (e!.Action)
