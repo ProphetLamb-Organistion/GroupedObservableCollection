@@ -4,7 +4,7 @@
 
 ```csharp
 public class ObservableGroupCollection<TKey, TValue>
-    : ObservableCollection<TValue>, IList<TValue>, ICollection<TValue>, IEnumerable<TValue>, IEnumerable, IList, ICollection, IReadOnlyList<TValue>, IReadOnlyCollection<TValue>, INotifyCollectionChanged, INotifyPropertyChanged, IObservableGroupCollection<TKey, TValue>, IGroupCollection<TKey, TValue>, IObservableCollection<TValue>
+    : ObservableCollection<TValue>, IList<TValue>, ICollection<TValue>, IEnumerable<TValue>, IEnumerable, IList, ICollection, IReadOnlyList<TValue>, IReadOnlyCollection<TValue>, INotifyCollectionChanged, INotifyPropertyChanged, IObservableGroupCollection<TKey, TValue>, IGroupCollection<TKey, TValue>
 ```
 
 ## Fields
@@ -35,16 +35,15 @@ public class ObservableGroupCollection<TKey, TValue>
 | `void` | ClearItems() |  |
 | `Boolean` | ContainsKey(`TKey&` key) |  |
 | `SynchronizedObservableGrouping<TKey, TValue>` | Create(`TKey&` key) |  |
-| `IEnumerable<IObservableGrouping<TKey, TValue>>` | EnumerateGroupings(`Func<IObservableGrouping<TKey, TValue>, Boolean>` predicate = null) |  |
+| `IEnumerable<SynchronizedObservableGrouping<TKey, TValue>>` | EnumerateGroupings(`Func<SynchronizedObservableGrouping<TKey, TValue>, Boolean>` predicate = null) |  |
 | `void` | GroupAdd(`SynchronizedObservableGrouping&` observableGrouping) |  |
-| `void` | GroupAddValue(`SynchronizedObservableGrouping<TKey, TValue>` group, `TValue` item, `Int32` desiredIndex = -1, `Boolean` offset = True) |  |
+| `void` | GroupAddValue(`SynchronizedObservableGrouping<TKey, TValue>` group, `TValue` item, `Int32` desiredIndex = -1) |  |
 | `void` | GroupRemove(`SynchronizedObservableGrouping&` observableGrouping) |  |
 | `Boolean` | GroupTryGet(`TKey&` key, `SynchronizedObservableGrouping&` syncedObservableGrouping) |  |
 | `void` | InsertItem(`Int32` index, `TValue` item) |  |
 | `void` | MoveItem(`Int32` oldIndex, `Int32` newIndex) |  |
 | `Boolean` | Remove(`TKey&` key) |  |
 | `void` | RemoveItem(`Int32` index) |  |
-| `void` | SetItem(`Int32` index, `TValue` item) |  |
 | `void` | ThrowOnIllegalBaseCall(`String` callingFunction = null) |  |
 | `Boolean` | TryGetGrouping(`TKey&` key, `IObservableGrouping`2&` grouping) |  |
 | `Boolean` | TryGetGrouping(`TKey&` key, `SynchronizedObservableGrouping&` observableGrouping) |  |

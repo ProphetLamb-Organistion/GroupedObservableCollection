@@ -4,7 +4,7 @@
 
 ```csharp
 public interface IObservableGrouping<TKey, TValue>
-    : IObservableCollection<TValue>, IList<TValue>, ICollection<TValue>, IEnumerable<TValue>, IEnumerable, INotifyCollectionChanged, INotifyPropertyChanged, IGrouping<TKey, TValue>
+    : IGrouping<TKey, TValue>, IEnumerable<TValue>, IEnumerable, IList<TValue>, ICollection<TValue>, INotifyCollectionChanged, INotifyPropertyChanged
 ```
 
 ---

@@ -30,16 +30,14 @@ Implementation of `ObservableCollection<T>` that associates items with `IGroupin
 
 ### Class diagram
 
-![Interface diagram picture](https://i.imgur.com/X5YJBkn.png)
-![Class diagram picture](https://i.imgur.com/7Ys35om.png)
+![Interface diagram picture](https://i.imgur.com/vKv1eot.png)
 
 ### Embeded documentation
 
 Documentation generated from xml-documentation
 
-  - [`IGroupCollection<TKey, TValue>`](doc/IGroupCollection{TKey-TValue}.md)
-  - [`IObservableCollection<T>`](doc/IObservableCollection{T}.md)
-  - [`IObservableGroupCollection<TKey, TValue>`](doc/IObservableGroupCollection{TKey-TValue}.md)
-  - [`IObservableGrouping<TKey, TValue>`](doc/IObservableGrouping{TKey-TValue}.md)
-  - [`ObservableGroupCollection<TKey, TValue>`](doc/ObservableGroupCollection{TKey-TValue}.md)
-  - [`SortedObservableGroupCollection<TKey, TValue>`](doc/SortedObservableGroupCollection{TKey-TValue}.md)
+- [`IGroupCollection<TKey, TValue>`](doc/IGroupCollection{TKey-TValue}.md)
+- [`IObservableGroupCollection<TKey, TValue>`](doc/IObservableGroupCollection{TKey-TValue}.md)
+- [`IObservableGrouping<TKey, TValue>`](doc/IObservableGrouping{TKey-TValue}.md)
+- [`ObservableGroupCollection<TKey, TValue>`](doc/ObservableGroupCollection{TKey-TValue}.md)
+- [`SortedObservableGroupCollection<TKey, TValue>`](doc/SortedObservableGroupCollection{TKey-TValue}.md)

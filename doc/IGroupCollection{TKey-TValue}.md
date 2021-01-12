@@ -4,7 +4,7 @@
 
 ```csharp
 public interface IGroupCollection<TKey, TValue>
-    : IEnumerable<TValue>, IEnumerable
+    : IReadOnlyList<TValue>, IReadOnlyCollection<TValue>, IEnumerable<TValue>, IEnumerable
 ```
 
 ## Properties

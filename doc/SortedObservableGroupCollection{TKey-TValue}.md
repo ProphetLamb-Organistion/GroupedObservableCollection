@@ -4,7 +4,7 @@
 
 ```csharp
 public class SortedObservableGroupCollection<TKey, TValue>
-    : ObservableGroupCollection<TKey, TValue>, IList<TValue>, ICollection<TValue>, IEnumerable<TValue>, IEnumerable, IList, ICollection, IReadOnlyList<TValue>, IReadOnlyCollection<TValue>, INotifyCollectionChanged, INotifyPropertyChanged, IObservableGroupCollection<TKey, TValue>, IGroupCollection<TKey, TValue>, IObservableCollection<TValue>
+    : ObservableGroupCollection<TKey, TValue>, IList<TValue>, ICollection<TValue>, IEnumerable<TValue>, IEnumerable, IList, ICollection, IReadOnlyList<TValue>, IReadOnlyCollection<TValue>, INotifyCollectionChanged, INotifyPropertyChanged, IObservableGroupCollection<TKey, TValue>, IGroupCollection<TKey, TValue>
 ```
 
 ## Properties
@@ -20,7 +20,8 @@ public class SortedObservableGroupCollection<TKey, TValue>
 | Type | Name | Summary |
 | --- | --- | --- |
 | `void` | GroupAdd(`SynchronizedObservableGrouping&` observableGrouping) |  |
-| `void` | GroupAddValue(`SynchronizedObservableGrouping<TKey, TValue>` group, `TValue` item, `Int32` desiredIndex = -1, `Boolean` offset = True) |  |
+| `void` | GroupAddValue(`SynchronizedObservableGrouping<TKey, TValue>` group, `TValue` item, `Int32` desiredIndex = -1) |  |
+| `void` | SetItem(`Int32` index, `TValue` item) |  |
 
 ---
 
