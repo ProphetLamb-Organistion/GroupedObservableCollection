@@ -132,14 +132,17 @@ namespace System.Collections.Specialized
         protected override void GroupAddValue(SynchronizedObservableGrouping group, TValue item, int desiredIndex = -1)
         {
             int index = desiredIndex;
-            if (!(ValueComparer is null))
+            // Nothing to sort or no comparer
+            if (group.Count > 1 && !(ValueComparer is null))
             {
                 index = CollectionSortHelper<TValue>.BinarySearch(
                     this,
-                    group.StartIndexInclusive,
+                    0,
                     group.Count, 
                     item,
                     ValueComparer);
+                if (index < 0) // Not found
+                    index = ~index;
             }
             base.GroupAddValue(group, item, index);
         }
@@ -160,6 +163,8 @@ namespace System.Collections.Specialized
                 index,
                 observableGrouping,
                 _wrappedKeyComparer);
+            if (swapIndex < 0) // Not found
+                swapIndex = ~swapIndex;
             
             BaseCallCheckin();
 
