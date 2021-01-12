@@ -1,9 +1,8 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
- 
-using System.Security.Cryptography;
+
 using System.Runtime.InteropServices;
- 
+
 //Source: https://source.dot.net/System.Private.CoreLib/Interop.GetRandomBytes.cs.html#https://source.dot.net/System.Private.CoreLib/Interop.GetRandomBytes.cs.html,466e9a485f6750aa
 internal static partial class Interop
 {

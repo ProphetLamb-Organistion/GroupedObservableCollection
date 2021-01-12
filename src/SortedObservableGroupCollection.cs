@@ -1,9 +1,7 @@
-﻿using System;
+﻿using GroupedObservableCollection.Import;
+
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using GroupedObservableCollection.Import;
 
 namespace System.Collections.Specialized
 {

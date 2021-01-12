@@ -17,9 +17,11 @@ namespace GroupedObservableCollection.Import
                 throw new ArgumentOutOfRangeException(nameof(length));
             if (array.Count < index+length)
                 throw new IndexOutOfRangeException();
+
             comparer ??= Comparer<T>.Default;
             int lo = index;
             int hi = index + length - 1;
+
             while (lo <= hi)
             {
                 int i = lo + ((hi - lo) >> 1);

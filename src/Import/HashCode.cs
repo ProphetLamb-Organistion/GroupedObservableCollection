@@ -1,6 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
- 
+
 /*
  
 The xxHash32 implementation is based on the code published by Yann Collet:
@@ -39,17 +39,17 @@ https://raw.githubusercontent.com/Cyan4973/xxHash/5c174cfa4e45a42f94082dc0d4539b
   - xxHash source repository : https://github.com/Cyan4973/xxHash
  
 */
- 
+
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Numerics;
 using System.Runtime.CompilerServices;
- 
+
 namespace System
 {
     // xxHash32 is used for the hash code.
     // https://github.com/Cyan4973/xxHash
- 
+
     internal struct HashCode
     {
         private static readonly uint s_seed = GenerateGlobalSeed();
