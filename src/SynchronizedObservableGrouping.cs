@@ -175,6 +175,7 @@ namespace System.Collections.Specialized
             /// <inheritdoc />
             public void Clear()
             {
+                _isVerbose = false;
                 lock (SyncRoot)
                 {
                     _collection.BaseCallCheckin();
@@ -187,6 +188,8 @@ namespace System.Collections.Specialized
 
                     _collection.BaseCallCheckin();
                 }
+                _isVerbose = true;
+
                 EndIndexExclusive = StartIndexInclusive;
                 OnPropertyChanged("Count");
                 OnPropertyChanged("Item[]");
