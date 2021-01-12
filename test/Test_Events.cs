@@ -11,7 +11,7 @@ namespace GroupedObservableCollection.Test
         [Test]
         public void Test_AddCollectionEventsOnGroupInvoke()
         {
-            var col = new ObservableGroupCollection<KeyStru, ValueClass>();
+            var col = new ObservableGroupingCollection<KeyStru, ValueClass>();
             var eventAccumulator = new List<NotifyCollectionChangedEventArgs>();
             col.CollectionChanged += (sender, args) =>
             {
@@ -35,7 +35,7 @@ namespace GroupedObservableCollection.Test
         [Test]
         public void Test_AddGroupItemsEvents()
         {
-            var col = new ObservableGroupCollection<KeyStru, ValueClass>();
+            var col = new ObservableGroupingCollection<KeyStru, ValueClass>();
             var eventAccumulator = new List<NotifyCollectionChangedEventArgs>();
 
             var groups = Resources.Instance.Keys.Select(key =>
@@ -59,7 +59,7 @@ namespace GroupedObservableCollection.Test
         [Test]
         public void Test_MoveGroupItemsEvents()
         {
-            var col = new ObservableGroupCollection<KeyStru, ValueClass>(
+            var col = new ObservableGroupingCollection<KeyStru, ValueClass>(
                 Resources.Instance.EnumerateSampleDataGrouped());
             var eventAccumulator = new List<NotifyCollectionChangedEventArgs>();
             var groups = col.EnumerateGroupings()
@@ -86,7 +86,7 @@ namespace GroupedObservableCollection.Test
         [Test]
         public void Test_RemoveGroupItemsEvents()
         {
-            var col = new ObservableGroupCollection<KeyStru, ValueClass>(Resources.Instance.EnumerateSampleDataGrouped());
+            var col = new ObservableGroupingCollection<KeyStru, ValueClass>(Resources.Instance.EnumerateSampleDataGrouped());
             var eventAccumulator = new List<NotifyCollectionChangedEventArgs>();
             var groups = col.EnumerateGroupings().Select(g =>
                 {
@@ -110,7 +110,7 @@ namespace GroupedObservableCollection.Test
         [Test]
         public void Test_ReplaceGroupItemsEvents()
         {
-            var col = new ObservableGroupCollection<KeyStru, ValueClass>(Resources.Instance.EnumerateSampleDataGrouped());
+            var col = new ObservableGroupingCollection<KeyStru, ValueClass>(Resources.Instance.EnumerateSampleDataGrouped());
             var eventAccumulator = new List<NotifyCollectionChangedEventArgs>();
             var groups = col.EnumerateGroupings().Select(g =>
             {
@@ -131,7 +131,7 @@ namespace GroupedObservableCollection.Test
         [Test]
         public void Test_ClearGroupItemsEvents()
         {
-            var col = new ObservableGroupCollection<KeyStru, ValueClass>(Resources.Instance.EnumerateSampleDataGrouped());
+            var col = new ObservableGroupingCollection<KeyStru, ValueClass>(Resources.Instance.EnumerateSampleDataGrouped());
             var resetEventAccumulator = new List<NotifyCollectionChangedEventArgs>();
             var groups = col.EnumerateGroupings().Select(g =>
             {
@@ -153,7 +153,7 @@ namespace GroupedObservableCollection.Test
         [Test]
         public void Test_ClearGroupCollectionEvents()
         {
-            var col = new ObservableGroupCollection<KeyStru, ValueClass>(Resources.Instance.EnumerateSampleDataGrouped());
+            var col = new ObservableGroupingCollection<KeyStru, ValueClass>(Resources.Instance.EnumerateSampleDataGrouped());
             var removeEventAccumulator = new List<NotifyCollectionChangedEventArgs>();
             var groups = col.EnumerateGroupings().ToArray();
             col.CollectionChanged += (sender, args) => removeEventAccumulator.Add(args);

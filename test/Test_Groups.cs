@@ -11,7 +11,7 @@ namespace GroupedObservableCollection.Test
         [Test]
         public void Test_Add()
         {
-            IObservableGroupCollection<KeyStru, ValueClass> col = new ObservableGroupCollection<KeyStru, ValueClass>();
+            IObservableGroupCollection<KeyStru, ValueClass> col = new ObservableGroupingCollection<KeyStru, ValueClass>();
             IDictionary<KeyStru, IObservableGrouping<KeyStru, ValueClass>> groupList = new Dictionary<KeyStru, IObservableGrouping<KeyStru, ValueClass>>();
             // Add Groupings
             foreach (IGrouping<KeyStru, ValueClass> grouping in Resources.Instance.EnumerateSampleDataGrouped())
@@ -33,7 +33,7 @@ namespace GroupedObservableCollection.Test
         [Test]
         public void Test_Insert()
         {
-            IObservableGroupCollection<KeyStru, ValueClass> col = new ObservableGroupCollection<KeyStru, ValueClass>();
+            IObservableGroupCollection<KeyStru, ValueClass> col = new ObservableGroupingCollection<KeyStru, ValueClass>();
             foreach (IGrouping<KeyStru, ValueClass> grouping in Resources.Instance.EnumerateSampleDataGrouped())
             {
                 if (!col.TryGetGrouping(grouping.Key, out var target))
@@ -48,7 +48,7 @@ namespace GroupedObservableCollection.Test
         [Test]
         public void Test_Clear()
         {
-            ObservableGroupCollection<KeyStru, ValueClass> col = new ObservableGroupCollection<KeyStru, ValueClass>(Resources.Instance.EnumerateSampleDataGrouped());
+            ObservableGroupingCollection<KeyStru, ValueClass> col = new ObservableGroupingCollection<KeyStru, ValueClass>(Resources.Instance.EnumerateSampleDataGrouped());
             int removedAccumulator = 0;
             foreach (IObservableGrouping<KeyStru, ValueClass> grouping in col.EnumerateGroupings())
             {
@@ -63,7 +63,7 @@ namespace GroupedObservableCollection.Test
         [Test]
         public void Test_Remove()
         {
-            ObservableGroupCollection<KeyStru, ValueClass> col = new ObservableGroupCollection<KeyStru, ValueClass>(Resources.Instance.EnumerateSampleDataGrouped());
+            ObservableGroupingCollection<KeyStru, ValueClass> col = new ObservableGroupingCollection<KeyStru, ValueClass>(Resources.Instance.EnumerateSampleDataGrouped());
             int removedAccumulator = 0;
             foreach (IObservableGrouping<KeyStru, ValueClass> grouping in col.EnumerateGroupings())
             {

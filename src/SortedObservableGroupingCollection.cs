@@ -11,8 +11,8 @@ namespace System.Collections.Specialized
     /// <typeparam name="TKey">The type of the keys.</typeparam>
     /// <typeparam name="TValue">The type of elements in the collection.</typeparam>
     /// <remarks>Insertion performance is sub optimal, because various operations must be performed on members of ObservableCollection, instead of directly on an Array.</remarks>
-    public class SortedObservableGroupCollection<TKey, TValue>
-        : ObservableGroupCollection<TKey, TValue>
+    public class SortedObservableGroupingCollection<TKey, TValue>
+        : ObservableGroupingCollection<TKey, TValue>
         where TKey : notnull
     {
         #region Fields
@@ -24,30 +24,30 @@ namespace System.Collections.Specialized
         #region Constructors
 
         /// <inheritdoc />
-        public SortedObservableGroupCollection()
+        public SortedObservableGroupingCollection()
         { }
         
         /// <inheritdoc />
-        public SortedObservableGroupCollection(IEqualityComparer<TKey> keyEqualityComparer)
+        public SortedObservableGroupingCollection(IEqualityComparer<TKey> keyEqualityComparer)
             : base(keyEqualityComparer)
         { }
         
         /// <inheritdoc />
-        public SortedObservableGroupCollection(IEnumerable<IGrouping<TKey, TValue>> groupings)
+        public SortedObservableGroupingCollection(IEnumerable<IGrouping<TKey, TValue>> groupings)
             : base(groupings)
         { }
         
         /// <inheritdoc />
-        public SortedObservableGroupCollection(IEnumerable<IGrouping<TKey, TValue>> groupings, IEqualityComparer<TKey> keyEqualityComparer)
+        public SortedObservableGroupingCollection(IEnumerable<IGrouping<TKey, TValue>> groupings, IEqualityComparer<TKey> keyEqualityComparer)
             : base(groupings, keyEqualityComparer)
         { }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="SortedObservableGroupCollection{TKey,TValue}"/> with the specified key, and value comparer.
+        /// Initializes a new instance of <see cref="SortedObservableGroupingCollection{TKey,TValue}"/> with the specified key, and value comparer.
         /// </summary>
         /// <param name="keyComparer">The comparer used to sort keys.</param>
         /// <param name="valueComparer">The comparer used to sort values.</param>
-        public SortedObservableGroupCollection(IComparer<TKey>? keyComparer, IComparer<TValue>? valueComparer)
+        public SortedObservableGroupingCollection(IComparer<TKey>? keyComparer, IComparer<TValue>? valueComparer)
         {
             KeyComparer = keyComparer;
             ValueComparer = valueComparer;
@@ -57,12 +57,12 @@ namespace System.Collections.Specialized
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="SortedObservableGroupCollection{TKey,TValue}"/> with the specified equality, key and value comparer.
+        /// Initializes a new instance of <see cref="SortedObservableGroupingCollection{TKey,TValue}"/> with the specified equality, key and value comparer.
         /// </summary>
         /// <param name="keyEqualityComparer">The equality comparer used to get the hashcode of keys, and to determine if two keys are equal.</param>
         /// <param name="keyComparer">The comparer used to sort keys.</param>
         /// <param name="valueComparer">The comparer used to sort values.</param>
-        public SortedObservableGroupCollection(
+        public SortedObservableGroupingCollection(
             IEqualityComparer<TKey> keyEqualityComparer,
             IComparer<TKey>? keyComparer,
             IComparer<TValue>? valueComparer)
@@ -73,12 +73,12 @@ namespace System.Collections.Specialized
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="SortedObservableGroupCollection{TKey,TValue}"/> from existing groupings, with the specified key and value comparer.
+        /// Initializes a new instance of <see cref="SortedObservableGroupingCollection{TKey,TValue}"/> from existing groupings, with the specified key and value comparer.
         /// </summary>
         /// <param name="groupings">The data source of the collection.</param>
         /// <param name="keyComparer">The comparer used to sort keys.</param>
         /// <param name="valueComparer">The comparer used to sort values.</param>
-        public SortedObservableGroupCollection(
+        public SortedObservableGroupingCollection(
             IEnumerable<IGrouping<TKey, TValue>?> groupings,
             IComparer<TKey>? keyComparer,
             IComparer<TValue>? valueComparer)
@@ -89,13 +89,13 @@ namespace System.Collections.Specialized
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="SortedObservableGroupCollection{TKey,TValue}"/> from existing groupings, with the specified equality, key and value comparer.
+        /// Initializes a new instance of <see cref="SortedObservableGroupingCollection{TKey,TValue}"/> from existing groupings, with the specified equality, key and value comparer.
         /// </summary>
         /// <param name="groupings">The data source of the collection.</param>
         /// <param name="keyEqualityComparer">The equality comparer used to get the hashcode of keys, and to determine if two keys are equal.</param>
         /// <param name="keyComparer">The comparer used to sort keys.</param>
         /// <param name="valueComparer">The comparer used to sort values.</param>
-        public SortedObservableGroupCollection(
+        public SortedObservableGroupingCollection(
             IEnumerable<IGrouping<TKey, TValue>?> groupings,
             IEqualityComparer<TKey> keyEqualityComparer,
             IComparer<TKey>? keyComparer,

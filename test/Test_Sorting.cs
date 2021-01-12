@@ -18,7 +18,7 @@ namespace GroupedObservableCollection.Test
                 return dt != 0 ? dt : String.Compare(x.Value, y.Value, StringComparison.Ordinal);
             });
 
-            var col = new SortedObservableGroupCollection<KeyStru, ValueClass>(null, valueComparer);
+            var col = new SortedObservableGroupingCollection<KeyStru, ValueClass>(null, valueComparer);
 
             foreach (var (key, value) in Resources.Instance.SampleData)
             {
@@ -38,7 +38,7 @@ namespace GroupedObservableCollection.Test
                 return dt != 0 ? dt : String.Compare(x.Value, y.Value, StringComparison.Ordinal);
             });
 
-            var col = new SortedObservableGroupCollection<KeyStru, ValueClass>(null, valueComparer);
+            var col = new SortedObservableGroupingCollection<KeyStru, ValueClass>(null, valueComparer);
             var groups = Resources.Instance.EnumerateSampleDataGrouped().Select(x => col.Create(x.Key)).ToArray();
 
             foreach (var (key, value) in Resources.Instance.SampleData)
@@ -61,7 +61,7 @@ namespace GroupedObservableCollection.Test
                 return dt != 0 ? dt : String.Compare(x.Value, y.Value, StringComparison.Ordinal);
             });
 
-            var col = new SortedObservableGroupCollection<KeyStru, ValueClass>(Resources.Instance.EnumerateSampleDataGrouped(), null, valueComparer);
+            var col = new SortedObservableGroupingCollection<KeyStru, ValueClass>(Resources.Instance.EnumerateSampleDataGrouped(), null, valueComparer);
 
             Assert.IsTrue(col.IsSorted);
 
@@ -88,7 +88,7 @@ namespace GroupedObservableCollection.Test
                 return dt != 0 ? dt : String.Compare(x.Value, y.Value, StringComparison.Ordinal);
             });
 
-            var col = new SortedObservableGroupCollection<KeyStru, ValueClass>(Resources.Instance.EnumerateSampleDataGrouped(), null, valueComparer);
+            var col = new SortedObservableGroupingCollection<KeyStru, ValueClass>(Resources.Instance.EnumerateSampleDataGrouped(), null, valueComparer);
 
             Assert.IsTrue(col.IsSorted);
 

@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 
 namespace System.Collections.Specialized
 {
-    public partial class ObservableGroupCollection<TKey, TValue>
+    public partial class ObservableGroupingCollection<TKey, TValue>
     {
         [DebuggerDisplay("Count = {Count}, Range=[{StartIndexInclusive}..{EndIndexExclusive}), Key = {Key}")]
         public sealed class SynchronizedObservableGrouping
@@ -13,7 +13,7 @@ namespace System.Collections.Specialized
         {
             #region Fields
 
-            private readonly ObservableGroupCollection<TKey, TValue> _collection;
+            private readonly ObservableGroupingCollection<TKey, TValue> _collection;
             private bool _isVerbose = true;
             private int _startIndexInclusive;
             private int _endIndexExclusive;
@@ -27,7 +27,7 @@ namespace System.Collections.Specialized
 
             public SynchronizedObservableGrouping(
                 in TKey key,
-                ObservableGroupCollection<TKey, TValue> collection) :
+                ObservableGroupingCollection<TKey, TValue> collection) :
                 this(key, collection.Count, collection.Count, collection)
             { }
 
@@ -35,7 +35,7 @@ namespace System.Collections.Specialized
                 in TKey key,
                 int startIndexInclusive,
                 int endIndexExclusive,
-                ObservableGroupCollection<TKey, TValue> collection)
+                ObservableGroupingCollection<TKey, TValue> collection)
             {
                 Key = key;
                 _startIndexInclusive = startIndexInclusive;

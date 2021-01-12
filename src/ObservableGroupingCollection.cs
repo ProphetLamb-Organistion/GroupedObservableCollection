@@ -8,7 +8,7 @@ namespace System.Collections.Specialized
 {
     /// <inheritdoc cref="IObservableGroupCollection{TKey,TValue}" />
     [DebuggerDisplay("Groups = {GroupCount}, Items = {Count}")]
-    public partial class ObservableGroupCollection<TKey, TValue>
+    public partial class ObservableGroupingCollection<TKey, TValue>
         : ObservableCollection<TValue>, IObservableGroupCollection<TKey, TValue>
         where TKey : notnull
     {
@@ -26,19 +26,19 @@ namespace System.Collections.Specialized
         #region Constructors
 
         /// <summary>
-        /// Initializes a new instance of <see cref="ObservableGroupCollection{TKey,TValue}"/>.
+        /// Initializes a new instance of <see cref="ObservableGroupingCollection{TKey,TValue}"/>.
         /// </summary>
-        public ObservableGroupCollection()
+        public ObservableGroupingCollection()
         {
             m_syncedGroups = new Dictionary<TKey, SynchronizedObservableGrouping>();
             m_keyEqualityComparer = EqualityComparer<TKey>.Default;
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="ObservableGroupCollection{TKey,TValue}"/> with the specified <see cref="IEqualityComparer{TKey}"/>.
+        /// Initializes a new instance of <see cref="ObservableGroupingCollection{TKey,TValue}"/> with the specified <see cref="IEqualityComparer{TKey}"/>.
         /// </summary>
         /// <param name="keyEqualityComparer">The equality comparer used to get the hashcode of keys, and to determine if two keys are equal.</param>
-        public ObservableGroupCollection(IEqualityComparer<TKey>? keyEqualityComparer)
+        public ObservableGroupingCollection(IEqualityComparer<TKey>? keyEqualityComparer)
         {
             if (keyEqualityComparer is null)
             {
@@ -53,18 +53,18 @@ namespace System.Collections.Specialized
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="ObservableGroupCollection{TKey,TValue}"/> from existing <paramref name="groupings"/>.
+        /// Initializes a new instance of <see cref="ObservableGroupingCollection{TKey,TValue}"/> from existing <paramref name="groupings"/>.
         /// </summary>
         /// <param name="groupings">The data source of the collection.</param>
-        public ObservableGroupCollection(IEnumerable<IGrouping<TKey, TValue>?> groupings)
+        public ObservableGroupingCollection(IEnumerable<IGrouping<TKey, TValue>?> groupings)
             : this(groupings, null) { }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="ObservableGroupCollection{TKey,TValue}"/> from existing <paramref name="groupings"/>, with the specified <see cref="IEqualityComparer{TKey}"/>.
+        /// Initializes a new instance of <see cref="ObservableGroupingCollection{TKey,TValue}"/> from existing <paramref name="groupings"/>, with the specified <see cref="IEqualityComparer{TKey}"/>.
         /// </summary>
         /// <param name="groupings">The data source of the collection.</param>
         /// <param name="keyEqualityComparer">The equality comparer used to get the hashcode of keys, and to determine if two keys are equal.</param>
-        public ObservableGroupCollection(IEnumerable<IGrouping<TKey, TValue>?> groupings, IEqualityComparer<TKey>? keyEqualityComparer)
+        public ObservableGroupingCollection(IEnumerable<IGrouping<TKey, TValue>?> groupings, IEqualityComparer<TKey>? keyEqualityComparer)
             : this(keyEqualityComparer)
         {
             CopyFrom(groupings ?? throw new ArgumentNullException(nameof(groupings)));
@@ -79,7 +79,7 @@ namespace System.Collections.Specialized
 
         /// <inheritdoc />
         IObservableGrouping<TKey, TValue> IObservableGroupCollection<TKey, TValue>.this[in TKey key] => this[key];
-        
+
         /// <inheritdoc />
         IGrouping<TKey, TValue> IGroupCollection<TKey, TValue>.this[in TKey key] => this[key];
 
@@ -92,6 +92,9 @@ namespace System.Collections.Specialized
         /// Indicates whether the collection is sorted. If true, can not Insert or Move
         /// </summary>
         public virtual bool IsSorted => false;
+
+        /// <inheritdoc />
+        public IReadonlyObservableCollection<TKey> Groupings { get; }
 
         #endregion
 
@@ -203,16 +206,13 @@ namespace System.Collections.Specialized
         /// </summary>
         /// <param name="predicate">A function to test each grouping for a condition.</param>
         /// <returns>An <see cref="IEnumerable{IObservableGrouping{TKey, TValue}}"/> that contains groupings from the <see cref="IObservableGrouping{TKey, TValue}"/> that satisfy the condition.</returns>
-        public IEnumerable<SynchronizedObservableGrouping> EnumerateGroupings(
-            Func<SynchronizedObservableGrouping, bool>? predicate = null)
+        public IEnumerable<SynchronizedObservableGrouping> EnumerateGroupings()
         {
             // Prevent caller code from casting to List<> and modifying m_groups.
             using List<SynchronizedObservableGrouping>.Enumerator en = m_groups.GetEnumerator();
             while (en.MoveNext())
             {
-                SynchronizedObservableGrouping item = en.Current;
-                if (predicate is null || predicate(item))
-                    yield return item!;
+                yield return en.Current!;
             }
         }
 

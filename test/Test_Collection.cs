@@ -12,9 +12,9 @@ namespace GroupedObservableCollection.Test
         public void Test_Ctor()
         {
             // Simple ctor
-            _ = new ObservableGroupCollection<KeyStru, ValueClass>();
+            _ = new ObservableGroupingCollection<KeyStru, ValueClass>();
             // Collection ctor
-            _ = new ObservableGroupCollection<KeyStru, ValueClass>(
+            _ = new ObservableGroupingCollection<KeyStru, ValueClass>(
                 Resources.Instance.EnumerateSampleDataGrouped(),
                 new KeyStru.EqComp());
             Assert.Pass();
@@ -23,7 +23,7 @@ namespace GroupedObservableCollection.Test
         [Test]
         public void Test_AddAutoGroup()
         { 
-            IObservableGroupCollection<KeyStru, ValueClass> col = new ObservableGroupCollection<KeyStru, ValueClass>();
+            IObservableGroupCollection<KeyStru, ValueClass> col = new ObservableGroupingCollection<KeyStru, ValueClass>();
             foreach (var (key, value) in Resources.Instance.SampleData)
             {
                 col.AddOrCreate(key, value);
@@ -35,7 +35,7 @@ namespace GroupedObservableCollection.Test
         [Test]
         public void Test_AddGroupEnumerable()
         { 
-            IObservableGroupCollection<KeyStru, ValueClass> col = new ObservableGroupCollection<KeyStru, ValueClass>();
+            IObservableGroupCollection<KeyStru, ValueClass> col = new ObservableGroupingCollection<KeyStru, ValueClass>();
             foreach (IGrouping<KeyStru, ValueClass> grouping in Resources.Instance.EnumerateSampleDataGrouped())
             {
                 col.AddOrCreate(grouping.Key, grouping);
@@ -47,7 +47,7 @@ namespace GroupedObservableCollection.Test
         [Test]
         public void Test_AddGroupSorted()
         {
-            IObservableGroupCollection<KeyStru, ValueClass> col = new ObservableGroupCollection<KeyStru, ValueClass>();
+            IObservableGroupCollection<KeyStru, ValueClass> col = new ObservableGroupingCollection<KeyStru, ValueClass>();
             // Add Groupings
             foreach (IGrouping<KeyStru, ValueClass> grouping in Resources.Instance.EnumerateSampleDataGrouped())
             {
@@ -66,7 +66,7 @@ namespace GroupedObservableCollection.Test
         [Test]
         public void Test_AccessGroups()
         {
-            IObservableGroupCollection<KeyStru, ValueClass> col = new ObservableGroupCollection<KeyStru, ValueClass>(
+            IObservableGroupCollection<KeyStru, ValueClass> col = new ObservableGroupingCollection<KeyStru, ValueClass>(
                 Resources.Instance.EnumerateSampleDataGrouped(),
                 new KeyStru.EqComp());
             int accu = 0;
@@ -81,7 +81,7 @@ namespace GroupedObservableCollection.Test
         [Test]
         public void Test_RandomTryGetRemove()
         {
-            IObservableGroupCollection<KeyStru, ValueClass> col = new ObservableGroupCollection<KeyStru, ValueClass>(Resources.Instance.EnumerateSampleDataGrouped());
+            IObservableGroupCollection<KeyStru, ValueClass> col = new ObservableGroupingCollection<KeyStru, ValueClass>(Resources.Instance.EnumerateSampleDataGrouped());
             int removedAccumulator = 0;
             foreach (KeyStru key in Resources.Instance.SampleData.Select(x => x.Key).OrderBy(x => ThreadLocalRandom.Next()))
             {
@@ -97,7 +97,7 @@ namespace GroupedObservableCollection.Test
         [Test]
         public void Test_ThrowOnIllegalBaseCall()
         {
-            ObservableGroupCollection<KeyStru, ValueClass> col = new ObservableGroupCollection<KeyStru, ValueClass>(Resources.Instance.EnumerateSampleDataGrouped());
+            ObservableGroupingCollection<KeyStru, ValueClass> col = new ObservableGroupingCollection<KeyStru, ValueClass>(Resources.Instance.EnumerateSampleDataGrouped());
             Assert.Throws<NotSupportedException>(delegate
             {
                 col.Add(ThreadLocalRandom.Choose(Resources.Instance.SampleData).Value);
