@@ -77,5 +77,16 @@ namespace GroupedObservableCollection.Test
             Assert.AreEqual(Resources.Instance.SampleCount, removedAccumulator + col.Count);
             Assert.Pass();
         }
+
+        [Test]
+        public void Test_Move()
+        {
+            var col = new ObservableGroupingCollection<KeyStru, ValueClass>(Resources.Instance.EnumerateSampleDataGrouped());
+            for (int i = 0; i < col.Groupings.Count; i++)
+            {
+                col.Groupings.Move(i, ThreadLocalRandom.Next(0, col.Groupings.Count - 1));
+            }
+            Assert.Pass();
+        }
     }
 }
