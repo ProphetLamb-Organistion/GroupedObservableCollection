@@ -9,8 +9,8 @@ namespace System.Collections.Specialized
     /// Represents a dynamic data collection that provides notifications when items get added, removed, or when the whole list is refreshed. 
     /// </summary>
     /// <typeparam name="T">The type of elements in the collection.</typeparam>
-    public interface IReadonlyObservableCollection<out T>
-        : IReadOnlyList<T>, INotifyCollectionChanged, INotifyPropertyChanged
+    public interface IObservableCollection<T>
+        : ICollection<T>, INotifyCollectionChanged, INotifyPropertyChanged
     { }
     
     /// <summary>
@@ -23,6 +23,11 @@ namespace System.Collections.Specialized
         where TKey : notnull
     { }
     
+    public interface IObservableGroupCollection<TKey, TValue>
+        : IObservableCollection<IObservableGrouping<TKey, TValue>>, IReadOnlyList<IObservableGrouping<TKey, TValue>>, ICollection
+        where TKey : notnull
+    { }
+
     /// <summary>
     /// Represents a mutable collection of items grouped by keys.
     /// </summary>
@@ -93,7 +98,7 @@ namespace System.Collections.Specialized
     /// <typeparam name="TKey">The type of keys.</typeparam>
     /// <typeparam name="TValue">The type of elements in the collection.</typeparam>
     public interface IObservableGroupingCollection<TKey, TValue>
-        : IGroupingCollection<TKey, TValue>, IReadonlyObservableCollection<TValue>
+        : IGroupingCollection<TKey, TValue>, IObservableCollection<TValue>
         where TKey : notnull
     {
         /// <summary>
@@ -108,6 +113,6 @@ namespace System.Collections.Specialized
         /// <summary>
         /// Gets the readonly collection representing the groupings of the <see cref="IObservableGroupingCollection{TKey,TValue}"/>.
         /// </summary>
-        IReadonlyObservableCollection<IObservableGrouping<TKey, TValue>> Groupings { get; }
+        IObservableGroupCollection<TKey, TValue> Groupings { get; }
     }
 }
