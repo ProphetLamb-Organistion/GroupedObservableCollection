@@ -17,7 +17,6 @@ namespace System.Collections.Specialized
             private bool _isVerbose = true;
             private int _startIndexInclusive;
             private int _endIndexExclusive;
-            private readonly bool _isSorted;
 
             public event NotifyCollectionChangedEventHandler? CollectionChanged;
             public event PropertyChangedEventHandler? PropertyChanged;
@@ -28,25 +27,21 @@ namespace System.Collections.Specialized
 
             public SynchronizedObservableGrouping(
                 in TKey key,
-                ObservableGroupCollection<TKey, TValue> collection,
-                object syncRoot) :
-                this(key, collection.Count, collection.Count, collection, syncRoot)
+                ObservableGroupCollection<TKey, TValue> collection) :
+                this(key, collection.Count, collection.Count, collection)
             { }
 
             public SynchronizedObservableGrouping(
                 in TKey key,
                 int startIndexInclusive,
                 int endIndexExclusive,
-                ObservableGroupCollection<TKey, TValue> collection,
-                object syncRoot)
+                ObservableGroupCollection<TKey, TValue> collection)
             {
                 Key = key;
                 _startIndexInclusive = startIndexInclusive;
                 _endIndexExclusive = endIndexExclusive;
-                _collection = collection ?? throw new ArgumentNullException(nameof(collection));
+                SyncRoot =_collection = collection ?? throw new ArgumentNullException(nameof(collection));
                 _collection.CollectionChanged += CollectionChangedEventSubscriber;
-                _isSorted = collection.IsSorted;
-                SyncRoot = syncRoot ?? throw new ArgumentNullException(nameof(syncRoot));
             }
 
             #endregion
@@ -100,7 +95,14 @@ namespace System.Collections.Specialized
             /// <summary>
             /// Indicates whether the synchronized collection is sorted. If true, can not Insert or Move.
             /// </summary>
-            public bool IsSorted => _isSorted; // Do not use auto-property, prevent unnecessary locking
+            public bool IsSorted
+            {
+                get
+                {
+                    lock (_collection)
+                        return _collection.IsSorted;
+                }
+            }
 
             /// <inheritdoc />
             bool ICollection<TValue>.IsReadOnly => false;
@@ -112,7 +114,7 @@ namespace System.Collections.Specialized
                 {
                     if ((uint)index >= (uint)Count)
                         throw new ArgumentOutOfRangeException(nameof(index));
-                    lock (SyncRoot)
+                    lock (_collection)
                         return _collection[index + StartIndexInclusive];
                 }
                 set
@@ -128,7 +130,7 @@ namespace System.Collections.Specialized
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get
                 {
-                    lock (SyncRoot)
+                    lock (_collection)
                         return _collection.Count;
                 }   
             }
@@ -140,7 +142,7 @@ namespace System.Collections.Specialized
             /// <inheritdoc />
             public void Add(TValue item)
             {
-                lock (SyncRoot)
+                lock (_collection)
                     _collection.AddOrCreate(Key, item);
 
                 OnPropertyChanged("Count");
@@ -160,7 +162,7 @@ namespace System.Collections.Specialized
                     return;
                 }
                 
-                lock (SyncRoot)
+                lock (_collection)
                 {
                     _collection.BaseCallCheckin();
 
@@ -176,7 +178,7 @@ namespace System.Collections.Specialized
             public void Clear()
             {
                 _isVerbose = false;
-                lock (SyncRoot)
+                lock (_collection)
                 {
                     _collection.BaseCallCheckin();
 
@@ -216,7 +218,7 @@ namespace System.Collections.Specialized
                 for (int i = StartIndexInclusive; i < EndIndexExclusive; i++)
                 {
                     TValue value;
-                    lock (SyncRoot)
+                    lock (_collection)
                         value = _collection[i];
                     if (valueComparer.Equals(item, value))
                         return i - StartIndexInclusive;
@@ -229,7 +231,7 @@ namespace System.Collections.Specialized
             {
                 if ((uint)index >= (uint)Count)
                     throw new ArgumentOutOfRangeException(nameof(index));
-                lock (SyncRoot)
+                lock (_collection)
                 {
                     _collection.BaseCallCheckin();
 
@@ -248,7 +250,7 @@ namespace System.Collections.Specialized
             {
                 if (IsSorted)
                     throw new NotSupportedException("Can not move in a sorted collection.");
-                lock (SyncRoot)
+                lock (_collection)
                 {
                     _collection.BaseCallCheckin();
 
@@ -271,7 +273,7 @@ namespace System.Collections.Specialized
                 for (int i = StartIndexInclusive; i < EndIndexExclusive; i++)
                 {
                     TValue item;
-                    lock (SyncRoot)
+                    lock (_collection)
                         item = _collection[i];
                     array[arrayIndex++] = item;
                 }
@@ -289,7 +291,7 @@ namespace System.Collections.Specialized
                 for (int i = StartIndexInclusive; i < EndIndexExclusive; i++)
                 {
                     TValue item;
-                    lock (SyncRoot)
+                    lock (_collection)
                         item = _collection[i];
                     array.SetValue(item, index++);
                 }
@@ -301,7 +303,7 @@ namespace System.Collections.Specialized
                 for (int i = StartIndexInclusive; i < EndIndexExclusive; i++)
                 {
                     TValue item;
-                    lock (SyncRoot)
+                    lock (_collection)
                         item = _collection[i];
                     yield return item;
                 }
@@ -316,7 +318,9 @@ namespace System.Collections.Specialized
 
             private void Set(int index, TValue item)
             {
-                lock (SyncRoot)
+                if (IsSorted)
+                    throw new NotSupportedException("Can not assign in a sorted collection.");
+                lock (_collection)
                 {
                     _collection.BaseCallCheckin();
 

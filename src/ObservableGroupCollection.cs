@@ -19,8 +19,6 @@ namespace System.Collections.Specialized
 
         protected readonly IEqualityComparer<TKey> m_keyEqualityComparer;
 
-        private readonly object __syncRoot = new object();
-
         private bool _throwOnBaseCall = true;
 
         #endregion
@@ -106,7 +104,7 @@ namespace System.Collections.Specialized
 
             if (!GroupTryGet(key, out SynchronizedObservableGrouping group))
             {
-                group = new SynchronizedObservableGrouping(key, this, __syncRoot);
+                group = new SynchronizedObservableGrouping(key, this);
                 GroupAdd(group);
             }
             GroupAddValue(group, value);
@@ -124,7 +122,7 @@ namespace System.Collections.Specialized
 
             if (!GroupTryGet(key, out SynchronizedObservableGrouping group))
             {
-                group = new SynchronizedObservableGrouping(key, this, __syncRoot);
+                group = new SynchronizedObservableGrouping(key, this);
                 GroupAdd(group);
             }
 
@@ -148,7 +146,7 @@ namespace System.Collections.Specialized
 
             if (m_syncedGroups.ContainsKey(key))
                 throw new ArgumentOutOfRangeException(nameof(key));
-            SynchronizedObservableGrouping created = new SynchronizedObservableGrouping(key, this, __syncRoot);
+            SynchronizedObservableGrouping created = new SynchronizedObservableGrouping(key, this);
             GroupAdd(created);
 
             BaseCallCheckout();
@@ -205,8 +203,8 @@ namespace System.Collections.Specialized
         /// </summary>
         /// <param name="predicate">A function to test each grouping for a condition.</param>
         /// <returns>An <see cref="IEnumerable{IObservableGrouping{TKey, TValue}}"/> that contains groupings from the <see cref="IObservableGrouping{TKey, TValue}"/> that satisfy the condition.</returns>
-        public IEnumerable<IObservableGrouping<TKey, TValue>> EnumerateGroupings(
-            Func<IObservableGrouping<TKey, TValue>?, bool>? predicate = null)
+        public IEnumerable<SynchronizedObservableGrouping> EnumerateGroupings(
+            Func<SynchronizedObservableGrouping, bool>? predicate = null)
         {
             // Prevent caller code from casting to List<> and modifying m_groups.
             using List<SynchronizedObservableGrouping>.Enumerator en = m_groups.GetEnumerator();
@@ -230,7 +228,7 @@ namespace System.Collections.Specialized
                     continue;
                 if (g.Key is null)
                     throw new NullReferenceException("IGrouping.Key can not be null.");
-                SynchronizedObservableGrouping group = new SynchronizedObservableGrouping(g.Key, this, __syncRoot);
+                SynchronizedObservableGrouping group = new SynchronizedObservableGrouping(g.Key, this);
                 GroupAdd(group);
                 foreach (TValue item in g)
                 {
@@ -307,7 +305,7 @@ namespace System.Collections.Specialized
         {
             if (_throwOnBaseCall)
                 throw new NotSupportedException(
-                    "The operation \"" + callingFunction + "\" is not supported for GroupedObservableCollection. Use operations functions and properties exposed by IGroupedObservableCollection.");
+                    "The operation \"" + callingFunction + "\" is not supported for GroupedObservableCollection. Use functions and properties exposed by IGroupedObservableCollection.");
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
