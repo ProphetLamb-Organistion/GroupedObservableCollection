@@ -47,13 +47,13 @@ namespace GroupedObservableCollection.Test
         }
 
         public override string ToString() => Name;
+    }
 
-        public class EqComp : IEqualityComparer<KeyStru>
-        {
-            public bool Equals(KeyStru x, KeyStru y) => x.Name == y.Name;
+    public class KeyStruEqComp : IEqualityComparer<KeyStru>
+    {
+        public bool Equals(KeyStru x, KeyStru y) => x.Name == y.Name;
 
-            public int GetHashCode(KeyStru obj) => obj.GetHashCode();
-        }
+        public int GetHashCode(KeyStru obj) => obj.GetHashCode();
     }
     
     [DebuggerDisplay("{Value}")]
@@ -85,11 +85,11 @@ namespace GroupedObservableCollection.Test
         {
             SampleData = new KeyValuePair<KeyStru, ValueClass>[SampleCount];
             Keys = new KeyStru[KeyCount];
-            for (int i = 0; i < KeyCount; i++)
+            for (var i = 0; i < KeyCount; i++)
             {
                 Keys[i] = new KeyStru(RandomString(3, 10), ThreadLocalRandom.Next(0, 9));
             }
-            for (int i = 0; i < SampleCount; i++)
+            for (var i = 0; i < SampleCount; i++)
             {
                 SampleData[i] = KeyValuePair.Create(
                     ThreadLocalRandom.Choose(Keys),
@@ -100,9 +100,9 @@ namespace GroupedObservableCollection.Test
         public IEnumerable<IGrouping<KeyStru, ValueClass>> EnumerateSampleDataGrouped() =>
             SampleData.GroupBy(x => x.Key, x => x.Value);
 
-        private string RandomString(int minLen, int maxLen)
+        private unsafe string RandomString(int minLen, int maxLen)
         {
-            int len = ThreadLocalRandom.Next(minLen, maxLen);
+            var len = ThreadLocalRandom.Next(minLen, maxLen);
             Span<char> buffer = stackalloc char[len];
             ThreadLocalRandom.Fill(buffer, RandomAlphabet);
             return new string(buffer);

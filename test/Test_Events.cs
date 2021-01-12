@@ -47,7 +47,7 @@ namespace GroupedObservableCollection.Test
 
             foreach (var (key, value) in Resources.Instance.SampleData)
             {
-                col.AddOrCreate(key, value);
+                col.Add(key, value);
             }
 
             Assert.AreEqual(0, eventAccumulator.Count(x => x.Action != NotifyCollectionChangedAction.Add));
@@ -62,7 +62,7 @@ namespace GroupedObservableCollection.Test
             var col = new ObservableGroupingCollection<KeyStru, ValueClass>(
                 Resources.Instance.EnumerateSampleDataGrouped());
             var eventAccumulator = new List<NotifyCollectionChangedEventArgs>();
-            var groups = col.EnumerateGroupings()
+            var groups = col.Groupings.AsEnumerable
                 .Select(
                     g =>
                     {
@@ -73,7 +73,7 @@ namespace GroupedObservableCollection.Test
 
             foreach (var g in groups)
             {
-                for (int i = 0; i < g.Count; i++)
+                for (var i = 0; i < g.Count; i++)
                 {
                     g.Move(i, (i + 1) % (g.Count - 1));
                 }
@@ -88,7 +88,7 @@ namespace GroupedObservableCollection.Test
         {
             var col = new ObservableGroupingCollection<KeyStru, ValueClass>(Resources.Instance.EnumerateSampleDataGrouped());
             var eventAccumulator = new List<NotifyCollectionChangedEventArgs>();
-            var groups = col.EnumerateGroupings().Select(g =>
+            var groups = col.Groupings.AsEnumerable.Select(g =>
                 {
                     g.CollectionChanged += (sender, args) => eventAccumulator.Add(args);
                     return g;
@@ -96,7 +96,7 @@ namespace GroupedObservableCollection.Test
 
             foreach (var grouping in groups)
             {
-                for (int i = grouping.Count-1; i >= 0; i--)
+                for (var i = grouping.Count-1; i >= 0; i--)
                 {
                     grouping.RemoveAt(i);
                 }
@@ -112,13 +112,13 @@ namespace GroupedObservableCollection.Test
         {
             var col = new ObservableGroupingCollection<KeyStru, ValueClass>(Resources.Instance.EnumerateSampleDataGrouped());
             var eventAccumulator = new List<NotifyCollectionChangedEventArgs>();
-            var groups = col.EnumerateGroupings().Select(g =>
+            var groups = col.Groupings.AsEnumerable.Select(g =>
             {
                 g.CollectionChanged += (sender, args) => eventAccumulator.Add(args);
                 return g;
             }).ToArray();
 
-            for (int i = 0; i < Resources.Instance.SampleCount; i++)
+            for (var i = 0; i < Resources.Instance.SampleCount; i++)
             {
                 col[i] = col[ThreadLocalRandom.Next(0, Resources.Instance.SampleCount) % Resources.Instance.SampleCount];
             }
@@ -133,7 +133,7 @@ namespace GroupedObservableCollection.Test
         {
             var col = new ObservableGroupingCollection<KeyStru, ValueClass>(Resources.Instance.EnumerateSampleDataGrouped());
             var resetEventAccumulator = new List<NotifyCollectionChangedEventArgs>();
-            var groups = col.EnumerateGroupings().Select(g =>
+            var groups = col.Groupings.AsEnumerable.Select(g =>
             {
                 g.CollectionChanged += (sender, args) => resetEventAccumulator.Add(args);
                 return g;
@@ -155,7 +155,7 @@ namespace GroupedObservableCollection.Test
         {
             var col = new ObservableGroupingCollection<KeyStru, ValueClass>(Resources.Instance.EnumerateSampleDataGrouped());
             var removeEventAccumulator = new List<NotifyCollectionChangedEventArgs>();
-            var groups = col.EnumerateGroupings().ToArray();
+            var groups = col.Groupings.AsEnumerable.ToArray();
             col.CollectionChanged += (sender, args) => removeEventAccumulator.Add(args);
 
             foreach (var g in groups)

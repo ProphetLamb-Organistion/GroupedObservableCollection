@@ -11,32 +11,32 @@ namespace GroupedObservableCollection.Test
         [Test]
         public void Test_Add()
         {
-            IObservableGroupCollection<KeyStru, ValueClass> col = new ObservableGroupingCollection<KeyStru, ValueClass>();
-            IDictionary<KeyStru, IObservableGrouping<KeyStru, ValueClass>> groupList = new Dictionary<KeyStru, IObservableGrouping<KeyStru, ValueClass>>();
+            var col = new ObservableGroupingCollection<KeyStru, ValueClass>();
+            var groupings = new Dictionary<KeyStru, IObservableGrouping<KeyStru, ValueClass>>();
             // Add Groupings
-            foreach (IGrouping<KeyStru, ValueClass> grouping in Resources.Instance.EnumerateSampleDataGrouped())
+            foreach (var grouping in Resources.Instance.EnumerateSampleDataGrouped())
             {
-                if (!col.TryGetGrouping(grouping.Key, out var target))
+                if (!col.Groupings.TryGetValue(grouping.Key, out var target))
                     target = col.Create(grouping.Key);
-                groupList.Add(grouping.Key, target);
+                groupings.Add(grouping.Key, target);
             }
             // Add items of grouping in each grouping
             foreach (var (key, value) in Resources.Instance.SampleData)
             {
-                groupList[key].Add(value);
+                groupings[key].Add(value);
             }
             Assert.AreEqual(Resources.Instance.SampleCount, col.Count);
-            Assert.AreEqual(Resources.Instance.SampleCount, groupList.Select(x => x.Value.Count).Aggregate((x, y) => x + y));
+            Assert.AreEqual(Resources.Instance.SampleCount, groupings.Select(x => x.Value.Count).Aggregate((x, y) => x + y));
             Assert.Pass();
         }
 
         [Test]
         public void Test_Insert()
         {
-            IObservableGroupCollection<KeyStru, ValueClass> col = new ObservableGroupingCollection<KeyStru, ValueClass>();
-            foreach (IGrouping<KeyStru, ValueClass> grouping in Resources.Instance.EnumerateSampleDataGrouped())
+            var col = new ObservableGroupingCollection<KeyStru, ValueClass>();
+            foreach (var grouping in Resources.Instance.EnumerateSampleDataGrouped())
             {
-                if (!col.TryGetGrouping(grouping.Key, out var target))
+                if (!col.Groupings.TryGetValue(grouping.Key, out var target))
                     target = col.Create(grouping.Key);
                 foreach(var value in grouping)
                     target.Insert(ThreadLocalRandom.Next(0, target.Count), value);
@@ -48,9 +48,9 @@ namespace GroupedObservableCollection.Test
         [Test]
         public void Test_Clear()
         {
-            ObservableGroupingCollection<KeyStru, ValueClass> col = new ObservableGroupingCollection<KeyStru, ValueClass>(Resources.Instance.EnumerateSampleDataGrouped());
-            int removedAccumulator = 0;
-            foreach (IObservableGrouping<KeyStru, ValueClass> grouping in col.EnumerateGroupings())
+            var col = new ObservableGroupingCollection<KeyStru, ValueClass>(Resources.Instance.EnumerateSampleDataGrouped());
+            var removedAccumulator = 0;
+            foreach (var grouping in col.Groupings.AsEnumerable)
             {
                 removedAccumulator += grouping.Count;
                 grouping.Clear();
@@ -63,12 +63,12 @@ namespace GroupedObservableCollection.Test
         [Test]
         public void Test_Remove()
         {
-            ObservableGroupingCollection<KeyStru, ValueClass> col = new ObservableGroupingCollection<KeyStru, ValueClass>(Resources.Instance.EnumerateSampleDataGrouped());
-            int removedAccumulator = 0;
-            foreach (IObservableGrouping<KeyStru, ValueClass> grouping in col.EnumerateGroupings())
+            var col = new ObservableGroupingCollection<KeyStru, ValueClass>(Resources.Instance.EnumerateSampleDataGrouped());
+            var removedAccumulator = 0;
+            foreach (var grouping in col.Groupings.AsEnumerable)
             {
-                int removeCount = ThreadLocalRandom.Next(0, grouping.Count);
-                for (int i = 0; i < removeCount; i++)
+                var removeCount = ThreadLocalRandom.Next(0, grouping.Count);
+                for (var i = 0; i < removeCount; i++)
                 {
                     grouping.RemoveAt(ThreadLocalRandom.Next(0, grouping.Count));
                     removedAccumulator++;

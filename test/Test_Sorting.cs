@@ -12,33 +12,21 @@ namespace GroupedObservableCollection.Test
         [Test]
         public void Test_ValueSortedCollectionAdd()
         {
-            var valueComparer = Comparer<ValueClass>.Create((x, y) =>
-            {
-                int dt = x.CreationDt.CompareTo(y.CreationDt);
-                return dt != 0 ? dt : String.Compare(x.Value, y.Value, StringComparison.Ordinal);
-            });
-
-            var col = new SortedObservableGroupingCollection<KeyStru, ValueClass>(null, valueComparer);
+            var col = new SortedObservableGroupingCollection<KeyStru, ValueClass>(KeyComparer, ValueComparer);
 
             foreach (var (key, value) in Resources.Instance.SampleData)
             {
-                col.AddOrCreate(key, value);
+                col.Add(key, value);
             }
 
             Assert.AreEqual(Resources.Instance.SampleCount, col.Count);
-            Assert.AreEqual(Resources.Instance.SampleCount, col.EnumerateGroupings().Select(x => x.Count).Aggregate((x, y) => x + y));
+            Assert.AreEqual(Resources.Instance.SampleCount, col.Groupings.AsEnumerable.Select(x => x.Count).Aggregate((x, y) => x + y));
         }
 
         [Test]
         public void Test_ValueSortedGroupAdd()
         {
-            var valueComparer = Comparer<ValueClass>.Create((x, y) =>
-            {
-                int dt = x.CreationDt.CompareTo(y.CreationDt);
-                return dt != 0 ? dt : String.Compare(x.Value, y.Value, StringComparison.Ordinal);
-            });
-
-            var col = new SortedObservableGroupingCollection<KeyStru, ValueClass>(null, valueComparer);
+            var col = new SortedObservableGroupingCollection<KeyStru, ValueClass>(KeyComparer, ValueComparer);
             var groups = Resources.Instance.EnumerateSampleDataGrouped().Select(x => col.Create(x.Key)).ToArray();
 
             foreach (var (key, value) in Resources.Instance.SampleData)
@@ -49,19 +37,13 @@ namespace GroupedObservableCollection.Test
             Assert.IsTrue(col.IsSorted);
 
             Assert.AreEqual(Resources.Instance.SampleCount, col.Count);
-            Assert.AreEqual(Resources.Instance.SampleCount, col.EnumerateGroupings().Select(x => x.Count).Aggregate((x, y) => x + y));
+            Assert.AreEqual(Resources.Instance.SampleCount, col.Groupings.AsEnumerable.Select(x => x.Count).Aggregate((x, y) => x + y));
         }
 
         [Test]
         public void Test_ThrowsOnInsert()
         {
-            var valueComparer = Comparer<ValueClass>.Create((x, y) =>
-            {
-                int dt = x.CreationDt.CompareTo(y.CreationDt);
-                return dt != 0 ? dt : String.Compare(x.Value, y.Value, StringComparison.Ordinal);
-            });
-
-            var col = new SortedObservableGroupingCollection<KeyStru, ValueClass>(Resources.Instance.EnumerateSampleDataGrouped(), null, valueComparer);
+            var col = new SortedObservableGroupingCollection<KeyStru, ValueClass>(Resources.Instance.EnumerateSampleDataGrouped(), KeyComparer, ValueComparer);
 
             Assert.IsTrue(col.IsSorted);
 
@@ -73,7 +55,7 @@ namespace GroupedObservableCollection.Test
             Assert.Throws<NotSupportedException>(delegate
             {
                 var (key, value) = ThreadLocalRandom.Choose(Resources.Instance.SampleData);
-                var g = col.EnumerateGroupings().First(x => x.Key == key);
+                var g = col.Groupings.AsEnumerable.First(x => x.Key == key);
                 Assert.IsTrue(g.IsSorted);
                 g.Insert(ThreadLocalRandom.Next(0, g.Count-1), value);
             });
@@ -82,13 +64,7 @@ namespace GroupedObservableCollection.Test
         [Test]
         public void Test_ThrowsOnAssign()
         {
-            var valueComparer = Comparer<ValueClass>.Create((x, y) =>
-            {
-                int dt = x.CreationDt.CompareTo(y.CreationDt);
-                return dt != 0 ? dt : String.Compare(x.Value, y.Value, StringComparison.Ordinal);
-            });
-
-            var col = new SortedObservableGroupingCollection<KeyStru, ValueClass>(Resources.Instance.EnumerateSampleDataGrouped(), null, valueComparer);
+            var col = new SortedObservableGroupingCollection<KeyStru, ValueClass>(Resources.Instance.EnumerateSampleDataGrouped(), KeyComparer, ValueComparer);
 
             Assert.IsTrue(col.IsSorted);
 
@@ -100,10 +76,22 @@ namespace GroupedObservableCollection.Test
             Assert.Throws<NotSupportedException>(delegate
             {
                 var (key, value) = ThreadLocalRandom.Choose(Resources.Instance.SampleData);
-                var g = col.EnumerateGroupings().First(x => x.Key == key);
+                var g = col.Groupings.AsEnumerable.First(x => x.Key == key);
                 Assert.IsTrue(g.IsSorted);
                 g[ThreadLocalRandom.Next(0, g.Count - 1)] = ThreadLocalRandom.Choose(Resources.Instance.SampleData).Value;
             });
         }
+
+        private IComparer<ValueClass> ValueComparer => Comparer<ValueClass>.Create((x, y) =>
+        {
+            var dt = x.CreationDt.CompareTo(y.CreationDt);
+            return dt != 0 ? dt : String.Compare(x.Value, y.Value, StringComparison.Ordinal);
+        });
+
+        private IComparer<KeyStru> KeyComparer => Comparer<KeyStru>.Create((x, y) =>
+        {
+            var prec = x.Precedence.CompareTo(y.Precedence);
+            return prec != 0 ? prec : String.Compare(x.Name, y.Name, StringComparison.Ordinal);
+        });
     }
 }

@@ -15,14 +15,14 @@ namespace GroupedObservableCollection.Test
         /// which are then used to create new random number
         /// generators on a per-thread basis.
         /// </summary>
-        private static readonly Random globalRandom = new Random();
+        private static readonly Random s_globalRandom = new Random();
 
-        private static readonly object globalLock = new object();
+        private static readonly object s_globalLock = new object();
 
         /// <summary>
         /// Random number generator
         /// </summary>
-        private static readonly ThreadLocal<Random> threadRandom = new ThreadLocal<Random>(NewRandom);
+        private static readonly ThreadLocal<Random> s_threadRandom = new ThreadLocal<Random>(NewRandom);
 
         /// <summary>
         /// Creates a new instance of Random. The seed is derived
@@ -31,9 +31,9 @@ namespace GroupedObservableCollection.Test
         /// </summary>
         public static Random NewRandom()
         {
-            lock (globalLock)
+            lock (s_globalLock)
             {
-                return new Random(globalRandom.Next());
+                return new Random(s_globalRandom.Next());
             }
         }
 
@@ -41,7 +41,7 @@ namespace GroupedObservableCollection.Test
         /// Returns an instance of Random which can be used freely
         /// within the current thread.
         /// </summary>
-        public static Random Instance => threadRandom.Value;
+        public static Random Instance => s_threadRandom.Value;
 
         /// <summary>See <see cref="Random.Next()" /></summary>
         public static int Next()
@@ -49,13 +49,13 @@ namespace GroupedObservableCollection.Test
             return Instance.Next();
         }
 
-        /// <summary>See <see cref="Random.Next(int)" /></summary>
+        /// <summary>See <see cref="Random.Next(Int32)" /></summary>
         public static int Next(int maxValue)
         {
             return Instance.Next(maxValue);
         }
 
-        /// <summary>See <see cref="Random.Next(int, int)" /></summary>
+        /// <summary>See <see cref="Random.Next(Int32, Int32)" /></summary>
         public static int Next(int minValue, int maxValue)
         {
             return Instance.Next(minValue, maxValue);
@@ -67,7 +67,7 @@ namespace GroupedObservableCollection.Test
             return Instance.NextDouble();
         }
 
-        /// <summary>See <see cref="Random.NextBytes(byte[])" /></summary>
+        /// <summary>See <see cref="Random.NextBytes(Byte[])" /></summary>
         public static void NextBytes(byte[] buffer)
         {
             Instance.NextBytes(buffer);
@@ -100,7 +100,7 @@ namespace GroupedObservableCollection.Test
                 yield break;
             if (count < 0)
                 throw new ArgumentOutOfRangeException(nameof(count));
-            for (int i = 0; i < count; i++)
+            for (var i = 0; i < count; i++)
                 yield return Choose(choices);
         }
 
@@ -111,7 +111,7 @@ namespace GroupedObservableCollection.Test
                 throw new ArgumentException("Collection cannot be empty.", nameof(alphabet));
             if (buffer.Length == 0)
                 return;
-            for (int i = 0; i < buffer.Length; i++)
+            for (var i = 0; i < buffer.Length; i++)
                 buffer[i] = alphabet[Next(alphabet.Length)];
         }
     }
