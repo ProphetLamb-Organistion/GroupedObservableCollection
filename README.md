@@ -22,7 +22,7 @@ Implementation of `ObservableCollection<T>` that associates items with `IGroupin
   - [x] Collection operations e.g. Add, Move, Remove
   - [x] Group operations e.g. AddOrCreate, Create, Remove, Contains
   - [x] Synchronized operations
-  - [ ] ObservableCollection Events
+  - [X] ObservableCollection Events
   - [ ] Sorting for Keys and Values
   - [ ] SerializableAtttribute and ISerializable interface
 
