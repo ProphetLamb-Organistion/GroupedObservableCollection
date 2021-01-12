@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace GroupedObservableCollection.Test
 {
-    public class Tests
+    public class Test_Collection
     {
         [Test]
         public void Test_Ctor()

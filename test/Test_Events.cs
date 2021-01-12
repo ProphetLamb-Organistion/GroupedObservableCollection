@@ -1,9 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using NUnit.Framework;
+
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using NUnit.Framework;
 
 namespace GroupedObservableCollection.Test
 {
@@ -14,78 +13,160 @@ namespace GroupedObservableCollection.Test
         {
             var col = new ObservableGroupCollection<KeyStru, ValueClass>();
             var eventAccumulator = new List<NotifyCollectionChangedEventArgs>();
-            // Subscribe
             col.CollectionChanged += (sender, args) =>
             {
                 eventAccumulator.Add(args);
             };
-            // Create groups
             var groups = Resources.Instance.Keys.Select(key => col.Create(key)).ToArray();
 
-            // Creating groups does not fire any events
             Assert.AreEqual(0, eventAccumulator.Count);
 
             foreach (var (key, value) in Resources.Instance.SampleData)
             {
-                // Add value to group
                 groups.First(x => x.Key == key).Add(value);
             }
 
-            // Check if all added items have been submitted
+            Assert.AreEqual(0, eventAccumulator.Count(x => x.Action != NotifyCollectionChangedAction.Add));
             Assert.AreEqual(Resources.Instance.SampleCount, eventAccumulator.Select(x => x.NewItems.Count).Aggregate((x, y) => x + y));
             
             Assert.Pass();
         }
 
         [Test]
-        public void Test_AddGroupEvents()
+        public void Test_AddGroupItemsEvents()
         {
             var col = new ObservableGroupCollection<KeyStru, ValueClass>();
             var eventAccumulator = new List<NotifyCollectionChangedEventArgs>();
 
-            // Create groups
             var groups = Resources.Instance.Keys.Select(key =>
             {
                 var g = col.Create(key);
-                // Subscribe
                 g.CollectionChanged += (sender, args) => eventAccumulator.Add(args);
                 return g;
             }).ToArray();
 
-            // Fire some events
             foreach (var (key, value) in Resources.Instance.SampleData)
             {
                 col.AddOrCreate(key, value);
             }
 
-            // Check if all added items have been submitted
+            Assert.AreEqual(0, eventAccumulator.Count(x => x.Action != NotifyCollectionChangedAction.Add));
             Assert.AreEqual(Resources.Instance.SampleCount, eventAccumulator.Select(x => x.NewItems.Count).Aggregate((x, y) => x + y));
 
             Assert.Pass();
         }
 
         [Test]
-        public void Test_MoveGroupEvents()
+        public void Test_MoveGroupItemsEvents()
+        {
+            var col = new ObservableGroupCollection<KeyStru, ValueClass>(
+                Resources.Instance.EnumerateSampleDataGrouped());
+            var eventAccumulator = new List<NotifyCollectionChangedEventArgs>();
+            var groups = col.EnumerateGroupings()
+                .Select(
+                    g =>
+                    {
+                        g.CollectionChanged += (sender, args) => eventAccumulator.Add(args);
+                        return g;
+                    })
+                .ToArray();
+
+            foreach (var g in groups)
+            {
+                for (int i = 0; i < g.Count; i++)
+                {
+                    g.Move(i, (i + 1) % (g.Count - 1));
+                }
+            }
+
+            Assert.AreEqual(0, eventAccumulator.Count(x => x.Action != NotifyCollectionChangedAction.Move));
+            Assert.AreEqual(Resources.Instance.SampleCount, eventAccumulator.Select(x => x.OldItems.Count).Aggregate((x, y) => x + y));
+        }
+
+        [Test]
+        public void Test_RemoveGroupItemsEvents()
         {
             var col = new ObservableGroupCollection<KeyStru, ValueClass>(Resources.Instance.EnumerateSampleDataGrouped());
             var eventAccumulator = new List<NotifyCollectionChangedEventArgs>();
-            var groups = col.EnumerateGroupings().Select(
-                g =>
+            var groups = col.EnumerateGroupings().Select(g =>
                 {
                     g.CollectionChanged += (sender, args) => eventAccumulator.Add(args);
                     return g;
                 }).ToArray();
 
-            for (int i = 0; i < Resources.Instance.SampleCount; i++)
+            foreach (var grouping in groups)
             {
-                var g = ThreadLocalRandom.Choose(groups);
-                for (int j = 0; j < g.Count; j++, i++)
+                for (int i = grouping.Count-1; i >= 0; i--)
                 {
-                    g.Move(j, ThreadLocalRandom.Next(0, g.Count));
+                    grouping.RemoveAt(i);
                 }
             }
-
+            
+            Assert.AreEqual(0, eventAccumulator.Count(x => x.Action != NotifyCollectionChangedAction.Remove));
             Assert.AreEqual(Resources.Instance.SampleCount, eventAccumulator.Select(x => x.OldItems.Count).Aggregate((x, y) => x + y));
+            Assert.AreEqual(0, col.Count);
+        }
+
+        [Test]
+        public void Test_ReplaceGroupItemsEvents()
+        {
+            var col = new ObservableGroupCollection<KeyStru, ValueClass>(Resources.Instance.EnumerateSampleDataGrouped());
+            var eventAccumulator = new List<NotifyCollectionChangedEventArgs>();
+            var groups = col.EnumerateGroupings().Select(g =>
+            {
+                g.CollectionChanged += (sender, args) => eventAccumulator.Add(args);
+                return g;
+            }).ToArray();
+
+            for (int i = 0; i < Resources.Instance.SampleCount; i++)
+            {
+                col[i] = col[ThreadLocalRandom.Next(0, Resources.Instance.SampleCount) % Resources.Instance.SampleCount];
+            }
+            
+            Assert.AreEqual(0, eventAccumulator.Count(x => x.Action != NotifyCollectionChangedAction.Replace));
+            Assert.AreEqual(Resources.Instance.SampleCount, eventAccumulator.Select(x => x.OldItems.Count).Aggregate((x, y) => x + y));
+            Assert.AreEqual(Resources.Instance.SampleCount, col.Count);
+        }
+
+        [Test]
+        public void Test_ClearGroupItemsEvents()
+        {
+            var col = new ObservableGroupCollection<KeyStru, ValueClass>(Resources.Instance.EnumerateSampleDataGrouped());
+            var resetEventAccumulator = new List<NotifyCollectionChangedEventArgs>();
+            var groups = col.EnumerateGroupings().Select(g =>
+            {
+                g.CollectionChanged += (sender, args) => resetEventAccumulator.Add(args);
+                return g;
+            }).ToArray();
+
+            foreach (var g in groups)
+            {
+                g.Clear();
+            }
+            
+            Assert.AreEqual(0, resetEventAccumulator.Count(x => x.Action != NotifyCollectionChangedAction.Reset));
+            Assert.AreEqual(groups.Length, resetEventAccumulator.Count(x => x.Action == NotifyCollectionChangedAction.Reset));
+
+            Assert.AreEqual(0, col.Count);
+        }
+
+        [Test]
+        public void Test_ClearGroupCollectionEvents()
+        {
+            var col = new ObservableGroupCollection<KeyStru, ValueClass>(Resources.Instance.EnumerateSampleDataGrouped());
+            var removeEventAccumulator = new List<NotifyCollectionChangedEventArgs>();
+            var groups = col.EnumerateGroupings().ToArray();
+            col.CollectionChanged += (sender, args) => removeEventAccumulator.Add(args);
+
+            foreach (var g in groups)
+            {
+                g.Clear();
+            }
+
+            Assert.AreEqual(0, removeEventAccumulator.Count(x => x.Action != NotifyCollectionChangedAction.Remove));
+            Assert.AreEqual(Resources.Instance.SampleCount, removeEventAccumulator.Select(x => x.OldItems.Count).Aggregate((x, y) => x + y));
+
+            Assert.AreEqual(0, col.Count);
         }
     }
 }
