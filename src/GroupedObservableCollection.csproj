@@ -5,7 +5,7 @@
     <LangVersion>8.0</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Nullable>enable</Nullable>
-    <Platforms>AnyCPU;x64;x86</Platforms>
+    <Platforms>AnyCPU</Platforms>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Copyright>Copyright ProphetLamb 2021</Copyright>
     <PackageLicenseFile>LICENCE</PackageLicenseFile>
