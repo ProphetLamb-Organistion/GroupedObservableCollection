@@ -168,6 +168,12 @@ namespace System.Collections.Specialized
             BaseCallCheckout();
         }
 
+        protected override void SetItem(int index, TValue item)
+        {
+            ThrowOnIllegalBaseCall();
+            base.SetItem(index, item);
+        }
+
         #endregion
     }
 }

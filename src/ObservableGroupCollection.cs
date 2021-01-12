@@ -325,7 +325,6 @@ namespace System.Collections.Specialized
         /// </summary>
         protected override void ClearItems()
         {
-            // Do not ThrowOnIllegalBaseCall
             base.ClearItems();
 
             // Clear groups
@@ -351,15 +350,6 @@ namespace System.Collections.Specialized
             base.InsertItem(index, item);
         }
 
-        /// <summary>
-        /// Called by base class ObservableCollection&lt;T&gt; when an item is set in list.
-        /// </summary>
-        protected override void SetItem(int index, TValue item)
-        {
-            ThrowOnIllegalBaseCall();
-            base.SetItem(index, item);
-        }
-        
         /// <summary>
         /// Called by base class ObservableCollection&lt;T&gt; when an item is moved in list.
         /// </summary>
