@@ -4,9 +4,47 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GroupedObservableCollection.Demo"
+        xmlns:viewModels="clr-namespace:GroupedObservableCollection.Demo.ViewModels"
         mc:Ignorable="d"
+        DataContext="{DynamicResource Model}"
         Title="MainWindow" Height="450" Width="800">
+    <Window.Resources>
+        <viewModels:MainWindowViewModel x:Key="Model"/>
+    </Window.Resources>
     <Grid>
+        <ListView x:Name="GroupedItemsListView"
+                  Grid.Row="0"
+                  Grid.Column="0">
+            <ListView.View>
+                <GridView AllowsColumnReorder="True">
+                    <GridViewColumn DisplayMemberBinding="{Binding Path=Type}" Header="Type"/>
+                    <GridViewColumn DisplayMemberBinding="{Binding Path=Prename}" Header="Prename"/>
+                    <GridViewColumn DisplayMemberBinding="{Binding Path=Surname}" Header="Surname"/>
+                    <GridViewColumn DisplayMemberBinding="{Binding Path=DateOfBirth}" Header="Date of birth"/>
+                </GridView>
+            </ListView.View>
+            <ListView.GroupStyle>
+                <GroupStyle>
+                    <GroupStyle.HeaderTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Path=Type}"/>
+                        </DataTemplate>
+                    </GroupStyle.HeaderTemplate>
+                </GroupStyle>
+            </ListView.GroupStyle>
+        </ListView>
+        <ListView x:Name="GroupsListView"
+                  Grid.Row="0"
+                  Grid.Column="1">
 
+        </ListView>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="200"/>
+        </Grid.RowDefinitions>
     </Grid>
 </Window>
