@@ -152,31 +152,49 @@ namespace System.Collections.Specialized
                     StartIndexInclusive = Count
                 };
                 m_groupings.Add(grouping);
-                foreach (TValue item in g)
-                {
-                    Items.Add(item);
-                    grouping.EndIndexExclusive++;
-                    m_groupings.OffsetAfterGroup(grouping, 1);
-                }
+                GroupAdd(grouping, g.ToList());
             }
         }
 
         /// <summary>
-        /// Adds a value to the specified group, preferably at the <paramref name="desiredIndex"/>.
+        /// Adds a value to the specified grouping, preferably at the <paramref name="relativeIndex"/>.
         /// </summary>
-        /// <param name="group">The group to which the item shall be added.</param>
+        /// <param name="grouping">The grouping to which the item shall be added.</param>
         /// <param name="item">The item to add.</param>
-        /// <param name="desiredIndex">The index at which the item should be added. -1 and group.Count add the item at the end of the group. Does not guarantee the eventual index of the item.</param>
-        protected virtual void GroupAdd(SynchronizedObservableGrouping group, TValue item, int desiredIndex = -1)
+        /// <param name="relativeIndex">T>The index relative to the StartIndex of the grouping, at which the item should be added. Does not guarantee the eventual index of the item.</param>
+        protected virtual void GroupAdd(SynchronizedObservableGrouping grouping, TValue item, int relativeIndex = -1)
         {
-            Debug.Assert(desiredIndex == -1 || (uint)desiredIndex <= (uint)group.Count, "desiredIndex == -1 || (uint)desiredIndex <= (uint)group.Count");
+            Debug.Assert(relativeIndex == -1 || (uint)relativeIndex <= (uint)grouping.Count, "desiredIndex == -1 || (uint)desiredIndex <= (uint)group.Count");
 
-            group.EndIndexExclusive++;
-            m_groupings.OffsetAfterGroup(group, 1);
+            grouping.EndIndexExclusive++;
+            m_groupings.OffsetAfterGroup(grouping, 1);
             
             BaseCallCheckin();
-            InsertItem( desiredIndex == -1 ? group.EndIndexExclusive - 1 /* EndIndexExclusive incremented before call */ : group.StartIndexInclusive + desiredIndex, item);
+            InsertItem(relativeIndex == -1 ? grouping.EndIndexExclusive - 1 /* EndIndexExclusive incremented before call */ : grouping.StartIndexInclusive + relativeIndex, item);
             BaseCallCheckout();
+        }
+
+        /// <summary>
+        /// Adds a list of items to the specified grouping at a index relative to the StartIndex of the grouping.
+        /// </summary>
+        /// <param name="grouping">The grouping to which the items shall be added.</param>
+        /// <param name="items">The list of items to add. Is passed as parameter to the CollectionChanged event!</param>
+        /// <param name="relativeIndex">The index relative to the StartIndex of the grouping, at which to insert the first item. Does not guarantee the eventual index of the items.</param>
+        protected virtual void GroupAdd(SynchronizedObservableGrouping grouping, IReadOnlyList<TValue> items, int relativeIndex = -1)
+        {
+            if (relativeIndex < -1 || relativeIndex > grouping.EndIndexExclusive)
+                throw new ArgumentOutOfRangeException(nameof(relativeIndex));
+            int insertionIndex = relativeIndex == -1 ?  grouping.EndIndexExclusive : grouping.StartIndexInclusive + relativeIndex;
+
+            foreach (var item in items)
+            {
+                Items.Insert(insertionIndex++, item);
+            }
+
+            grouping.EndIndexExclusive += items.Count;
+            m_groupings.OffsetAfterGroup(grouping, items.Count);
+
+            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, items, insertionIndex-Items.Count));
         }
 
         
