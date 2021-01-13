@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
@@ -143,7 +144,7 @@ namespace System.Collections.Specialized
             public void Add(TValue item)
             {
                 lock (m_collection)
-                    m_collection.Add(Key, item);
+                    m_collection.GroupAdd(this, item);
 
                 OnPropertyChanged("Count");
                 OnPropertyChanged("Item[]");
@@ -156,11 +157,6 @@ namespace System.Collections.Specialized
                     throw new NotSupportedException("Can not insert into a sorted collection.");
                 if ((uint)index > (uint)Count)
                     throw new ArgumentOutOfRangeException(nameof(index));
-                if (index == Count)
-                {
-                    Add(item);
-                    return;
-                }
                 
                 lock (m_collection)
                     m_collection.GroupAdd(this, item, index);
@@ -230,12 +226,18 @@ namespace System.Collections.Specialized
                 OnPropertyChanged("Count");
                 OnPropertyChanged("Item[]");
             }
-            
-            /// <inheritdoc />
+
+            /// <inheritdoc cref="ObservableCollection{T}.Move" />
             public void Move(int oldIndex, int newIndex)
             {
                 if (IsSorted)
                     throw new NotSupportedException("Can not move in a sorted collection.");
+                if ((uint)oldIndex >= (uint)Count)
+                    throw new ArgumentOutOfRangeException(nameof(oldIndex));
+                if ((uint)newIndex >= (uint)Count)
+                    throw new ArgumentOutOfRangeException(nameof(newIndex));
+                if (oldIndex == newIndex)
+                    return;
                 lock (m_collection)
                 {
                     m_collection.BaseCallCheckin();

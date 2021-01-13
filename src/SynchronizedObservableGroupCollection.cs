@@ -133,9 +133,7 @@ namespace System.Collections.Specialized
                 base.ClearItems();
 
                 lock (m_valuesCollection)
-                {
                     m_valuesCollection.Clear();
-                }
             }
 
             protected override void InsertItem(int index, SynchronizedObservableGrouping item)
