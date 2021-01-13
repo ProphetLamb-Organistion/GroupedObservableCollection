@@ -82,13 +82,13 @@ namespace GroupedObservableCollection.Test
             });
         }
 
-        private IComparer<ValueClass> ValueComparer => Comparer<ValueClass>.Create((x, y) =>
+        private static IComparer<ValueClass> ValueComparer => Comparer<ValueClass>.Create((x, y) =>
         {
             var dt = x.CreationDt.CompareTo(y.CreationDt);
             return dt != 0 ? dt : String.Compare(x.Value, y.Value, StringComparison.Ordinal);
         });
 
-        private IComparer<KeyStru> KeyComparer => Comparer<KeyStru>.Create((x, y) =>
+        private static IComparer<KeyStru> KeyComparer => Comparer<KeyStru>.Create((x, y) =>
         {
             var prec = x.Precedence.CompareTo(y.Precedence);
             return prec != 0 ? prec : String.Compare(x.Name, y.Name, StringComparison.Ordinal);

@@ -143,7 +143,7 @@ namespace GroupedObservableCollection.Test
             {
                 g.Clear();
             }
-            
+
             Assert.AreEqual(0, resetEventAccumulator.Count(x => x.Action != NotifyCollectionChangedAction.Reset));
             Assert.AreEqual(groups.Length, resetEventAccumulator.Count(x => x.Action == NotifyCollectionChangedAction.Reset));
 
