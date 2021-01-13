@@ -89,7 +89,7 @@ namespace System.Collections.Specialized
         /// <summary>
         /// Represents the collection of unique keys of groups.
         /// </summary>
-        IReadOnlyList<IGrouping<TKey, TValue>> Groups { get; }
+        IReadOnlyList<IGrouping<TKey, TValue>> Groupings { get; }
     }
 
     /// <summary>
@@ -113,6 +113,6 @@ namespace System.Collections.Specialized
         /// <summary>
         /// Gets the readonly collection representing the groupings of the <see cref="IObservableGroupingCollection{TKey,TValue}"/>.
         /// </summary>
-        IObservableGroupCollection<TKey, TValue> Groupings { get; }
+        new IObservableGroupCollection<TKey, TValue> Groupings { get; }
     }
 }

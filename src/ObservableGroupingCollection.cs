@@ -79,7 +79,7 @@ namespace System.Collections.Specialized
         /// <inheritdoc cref="IObservableGroupingCollection{TKey,TValue}.Groupings" />
         public SynchronizedObservableGroupCollection Groupings => m_groupings;
 
-        IReadOnlyList<IGrouping<TKey, TValue>> IGroupingCollection<TKey, TValue>.Groups => m_groupings;
+        IReadOnlyList<IGrouping<TKey, TValue>> IGroupingCollection<TKey, TValue>.Groupings => m_groupings;
 
         #endregion
 
