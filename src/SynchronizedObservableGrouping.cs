@@ -9,18 +9,24 @@ namespace System.Collections.Specialized
     public partial class ObservableGroupingCollection<TKey, TValue>
     {
         [DebuggerDisplay("Count = {Count}, Range=[{StartIndexInclusive}..{EndIndexExclusive}), Key = {Key}")]
+        [Serializable]
         public class SynchronizedObservableGrouping
             : IObservableGrouping<TKey, TValue>, ICollection
         {
             #region Fields
 
             protected readonly ObservableGroupingCollection<TKey, TValue> m_collection;
-            private bool _isVerbose = true;
             private int _startIndexInclusive;
             private int _endIndexExclusive;
 
-            public event NotifyCollectionChangedEventHandler? CollectionChanged;
-            public event PropertyChangedEventHandler? PropertyChanged;
+            [field: NonSerialized]
+            private bool _isVerbose = true;
+            
+            [field: NonSerialized]
+            public virtual event NotifyCollectionChangedEventHandler? CollectionChanged;
+            
+            [field: NonSerialized]
+            public virtual event PropertyChangedEventHandler? PropertyChanged;
 
             #endregion
 

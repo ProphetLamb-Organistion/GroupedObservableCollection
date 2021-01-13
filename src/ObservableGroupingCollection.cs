@@ -8,6 +8,7 @@ namespace System.Collections.Specialized
 {
     /// <inheritdoc cref="IObservableGroupingCollection{TKey,TValue}" />
     [DebuggerDisplay("Groups = {m_groupings.Count}, Items = {Count}")]
+    [Serializable]
     public partial class ObservableGroupingCollection<TKey, TValue>
         : ObservableCollection<TValue>, IObservableGroupingCollection<TKey, TValue>
         where TKey : notnull
@@ -16,6 +17,7 @@ namespace System.Collections.Specialized
 
         protected SynchronizedObservableGroupCollection m_groupings;
 
+        [field: NonSerialized]
         private bool _throwOnBaseCall = true;
 
         #endregion
@@ -134,19 +136,23 @@ namespace System.Collections.Specialized
 
         protected void CopyFrom(IEnumerable<IGrouping<TKey, TValue>?> groupings)
         {
-            foreach (IGrouping<TKey, TValue>? g in groupings)
+            CheckReentrancy();
+            using (BlockReentrancy())
             {
-                if (g is null)
-                    continue;
-                if (g.Key is null)
-                    throw new NullReferenceException("IGrouping.Key can not be null.");
-                SynchronizedObservableGrouping grouping = new SynchronizedObservableGrouping(g.Key, this)
-                { 
-                    EndIndexExclusive = Count,
-                    StartIndexInclusive = Count
-                };
-                m_groupings.Add(grouping);
-                GroupAdd(grouping, g.ToList());
+                foreach (IGrouping<TKey, TValue>? g in groupings)
+                {
+                    if (g is null)
+                        continue;
+                    if (g.Key is null)
+                        throw new NullReferenceException("IGrouping.Key can not be null.");
+                    SynchronizedObservableGrouping grouping = new SynchronizedObservableGrouping(g.Key, this)
+                    { 
+                        EndIndexExclusive = Count,
+                        StartIndexInclusive = Count
+                    };
+                    m_groupings.Add(grouping);
+                    GroupAdd(grouping, g.ToList());
+                }
             }
         }
 
@@ -158,6 +164,7 @@ namespace System.Collections.Specialized
         /// <param name="relativeIndex">T>The index relative to the StartIndex of the grouping, at which the item should be added. Does not guarantee the eventual index of the item.</param>
         protected virtual void GroupAdd(SynchronizedObservableGrouping grouping, TValue item, int relativeIndex = -1)
         {
+            CheckReentrancy();
             Debug.Assert(relativeIndex == -1 || (uint)relativeIndex <= (uint)grouping.Count, "desiredIndex == -1 || (uint)desiredIndex <= (uint)group.Count");
 
             grouping.EndIndexExclusive++;
@@ -176,6 +183,7 @@ namespace System.Collections.Specialized
         /// <param name="relativeIndex">The index relative to the StartIndex of the grouping, at which to insert the first item. Does not guarantee the eventual index of the items.</param>
         protected virtual void GroupAdd(SynchronizedObservableGrouping grouping, IReadOnlyList<TValue> items, int relativeIndex = -1)
         {
+            CheckReentrancy();
             if (relativeIndex < -1 || relativeIndex > grouping.EndIndexExclusive)
                 throw new ArgumentOutOfRangeException(nameof(relativeIndex));
             int insertionIndex = relativeIndex == -1 ?  grouping.EndIndexExclusive : grouping.StartIndexInclusive + relativeIndex;
@@ -219,6 +227,7 @@ namespace System.Collections.Specialized
                 throw new ArgumentOutOfRangeException(nameof(count));
             if (Count < startIndex + count)
                 throw new IndexOutOfRangeException();
+            CheckReentrancy();
             TValue[] items = new TValue[count];
             int index = startIndex + count - 1;
             for (int i = count - 1; i >= 0; i--, index--)
@@ -246,6 +255,7 @@ namespace System.Collections.Specialized
                 throw new ArgumentOutOfRangeException(nameof(itemsCount));
             if (items.Count < itemsIndex + itemsCount)
                 throw new IndexOutOfRangeException();
+            CheckReentrancy();
             int index = startIndex;
             for (int i = itemsIndex; i < itemsCount; i++, index++)
             {
@@ -262,6 +272,7 @@ namespace System.Collections.Specialized
         /// <param name="count">The number of elements to move.</param>
         protected virtual void MoveRange(int oldIndex, int newIndex, int count)
         {
+            CheckReentrancy();
             TValue[] items = new TValue[count];
             var offsetStartIndex = oldIndex;
             var offsetTargetIndex = newIndex;
