@@ -89,10 +89,10 @@ namespace GroupedObservableCollection.Test
             var col = new ObservableGroupingCollection<KeyStru, ValueClass>(Resources.Instance.EnumerateSampleDataGrouped());
             var eventAccumulator = new List<NotifyCollectionChangedEventArgs>();
             var groups = col.Groupings.AsEnumerable.Select(g =>
-                {
-                    g.CollectionChanged += (sender, args) => eventAccumulator.Add(args);
-                    return g;
-                }).ToArray();
+            {
+                g.CollectionChanged += (sender, args) => eventAccumulator.Add(args);
+                return g;
+            }).ToArray();
 
             foreach (var grouping in groups)
             {
