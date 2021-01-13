@@ -104,10 +104,7 @@ namespace System.Collections.Specialized
         {
             SynchronizedObservableGrouping grouping = m_groupings.GetOrAdd(key, () => new SynchronizedObservableGrouping(key, this));
 
-            foreach (TValue item in values)
-            {
-                GroupAdd(grouping, item);
-            }
+            GroupAdd(grouping, values.ToList());
         }
 
         /// <inheritdoc />
