@@ -67,7 +67,13 @@ namespace System.Collections.Specialized
 
         IGrouping<TKey, TValue> IGroupingCollection<TKey, TValue>.this[in TKey key] => this[key];
 
-        /// <inheritdoc cref="IObservableGroupingCollection{TKey,TValue}.this"/>
+        /// <summary>
+        /// Gets the grouping with the specified <paramref name="key"/>.
+        /// </summary>
+        /// <param name="key">The key of the grouping to get.</param>
+        /// <returns>The grouping with the specified <paramref name="key"/>.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when the <paramref name="key"/> is null.</exception>
+        /// <exception cref="KeyNotFoundException">Thrown when there is no grouping with the <paramref name="key"/> in the collection.</exception>
         public SynchronizedObservableGrouping this[in TKey key] => m_groupings[key];
 
 
