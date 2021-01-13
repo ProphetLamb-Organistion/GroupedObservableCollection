@@ -30,7 +30,7 @@ Implementation of `ObservableCollection<T>` that associates items with `IGroupin
 
 ### Class diagram
 
-![Interface diagram picture](https://i.imgur.com/vKv1eot.png)
+![Interface diagram picture](https://i.imgur.com/cwChStn.png)
 
 ### Embeded documentation
 
