@@ -61,10 +61,8 @@ namespace System.Collections.Specialized
 
         #region Properties
 
-        /// <inheritdoc />
         IObservableGrouping<TKey, TValue> IObservableGroupingCollection<TKey, TValue>.this[in TKey key] => this[key];
 
-        /// <inheritdoc />
         IGrouping<TKey, TValue> IGroupingCollection<TKey, TValue>.this[in TKey key] => this[key];
 
         /// <inheritdoc cref="IObservableGroupingCollection{TKey,TValue}.this"/>
@@ -76,7 +74,6 @@ namespace System.Collections.Specialized
         /// </summary>
         public virtual bool IsSorted => false;
 
-        /// <inheritdoc />
         IObservableGroupCollection<TKey, TValue> IObservableGroupingCollection<TKey, TValue>.Groupings => Groupings;
 
         /// <inheritdoc cref="IObservableGroupingCollection{TKey,TValue}.Groupings" />

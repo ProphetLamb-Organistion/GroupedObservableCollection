@@ -94,17 +94,15 @@ namespace System.Collections.Specialized
             {
                 SynchronizedObservableGrouping oldItem = this[index];
                 int offset = item.Count - oldItem.Count;
-                
-                m_keyDictionary.Remove(oldItem.Key);
-                m_keyDictionary.Add(item.Key, item);
-                base.SetItem(index, item);
 
                 item.EndIndexExclusive = index + item.Count;
                 item.StartIndexInclusive = index;
                 lock (m_valuesCollection)
-                {
                     m_valuesCollection.Groupings.OffsetAfterGroup(item, offset);
-                }
+                
+                m_keyDictionary.Remove(oldItem.Key);
+                m_keyDictionary.Add(item.Key, item);
+                base.SetItem(index, item);
             }
 
             protected override void RemoveItem(int index)
@@ -113,11 +111,10 @@ namespace System.Collections.Specialized
                 lock (m_valuesCollection)
                 {
                     m_valuesCollection.Groupings.OffsetAfterGroup(item, item.Count);
+                    m_valuesCollection.RemoveRange(item.StartIndexInclusive, item.Count);
 
                     m_keyDictionary.Remove(item.Key);
                     base.RemoveItem(index);
-
-                    m_valuesCollection.RemoveRange(item.StartIndexInclusive, item.Count);
                 }
             }
 

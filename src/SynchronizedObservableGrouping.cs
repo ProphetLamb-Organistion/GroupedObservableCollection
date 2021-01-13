@@ -143,7 +143,7 @@ namespace System.Collections.Specialized
             public void Add(TValue item)
             {
                 lock (m_collection)
-                    m_collection.Add(Key, item);
+                    m_collection.GroupAdd(this, item);
 
                 OnPropertyChanged("Count");
                 OnPropertyChanged("Item[]");
@@ -156,11 +156,6 @@ namespace System.Collections.Specialized
                     throw new NotSupportedException("Can not insert into a sorted collection.");
                 if ((uint)index > (uint)Count)
                     throw new ArgumentOutOfRangeException(nameof(index));
-                if (index == Count)
-                {
-                    Add(item);
-                    return;
-                }
                 
                 lock (m_collection)
                     m_collection.GroupAdd(this, item, index);
