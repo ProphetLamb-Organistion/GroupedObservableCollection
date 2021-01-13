@@ -135,7 +135,7 @@ namespace System.Collections.Specialized
 
         #region Private members
 
-        private void CopyFrom(IEnumerable<IGrouping<TKey, TValue>?> groupings)
+        protected void CopyFrom(IEnumerable<IGrouping<TKey, TValue>?> groupings)
         {
             foreach (IGrouping<TKey, TValue>? g in groupings)
             {

@@ -60,10 +60,10 @@ namespace System.Collections.Specialized
             IEnumerable<IGrouping<TKey, TValue>?> groupings,
             IComparer<TKey> keyComparer,
             IComparer<TValue> valueComparer)
-            : base(groupings)
         {
             m_groupings = _groups = new SynchronizedSortedObservableGroupCollection(m_groupings, this, null, keyComparer);
             Comparer = valueComparer;
+            CopyFrom(groupings ?? throw new ArgumentNullException(nameof(groupings))); // base(groupings) invokes Comparer, before it is assigned
         }
 
         /// <summary>
@@ -78,10 +78,11 @@ namespace System.Collections.Specialized
             IEqualityComparer<TKey> keyEqualityComparer,
             IComparer<TKey> keyComparer,
             IComparer<TValue> valueComparer)
-            : base(groupings, keyEqualityComparer)
+            : base(keyEqualityComparer)
         {
             m_groupings = _groups = new SynchronizedSortedObservableGroupCollection(m_groupings, this, keyEqualityComparer, keyComparer);
             Comparer = valueComparer;
+            CopyFrom(groupings ?? throw new ArgumentNullException(nameof(groupings))); // base(groupings) invokes Comparer, before it is assigned
         }
 
         #endregion
