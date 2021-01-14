@@ -15,13 +15,13 @@ namespace System.Collections.Specialized
         : ObservableGroupingCollection<TKey, TValue>
         where TKey : notnull
     {
-        #region Fields
+#region Fields
 
         private SynchronizedSortedObservableGroupCollection _groups;
 
-        #endregion
+#endregion
 
-        #region Constructors
+#region Constructors
 
         /// <summary>
         /// Initializes a new instance of <see cref="SortedObservableGroupingCollection{TKey,TValue}"/> with the specified key, and value comparer.
@@ -85,9 +85,9 @@ namespace System.Collections.Specialized
             CopyFrom(groupings ?? throw new ArgumentNullException(nameof(groupings))); // base(groupings) invokes Comparer, before it is assigned
         }
 
-        #endregion
+#endregion
 
-        #region Properties
+#region Properties
 
         /// <summary>
         /// Returns the instance of the comparer used to compare values.
@@ -97,9 +97,9 @@ namespace System.Collections.Specialized
         /// <inheritdoc />
         public override bool IsSorted => true;
 
-        #endregion
+#endregion
 
-        #region Overrides
+#region Overrides
 
         /// <inheritdoc />
         protected override void GroupAdd(SynchronizedObservableGrouping grouping, TValue item, int relativeIndex = -1)
@@ -127,6 +127,6 @@ namespace System.Collections.Specialized
             base.SetItem(index, item);
         }
 
-        #endregion
+#endregion
     }
 }

@@ -17,34 +17,34 @@ namespace System.Collections.Specialized
                 IObservableGroupCollection<TKey, TValue>,
                 IReadOnlyDictionary<TKey, SynchronizedObservableGrouping>
         {
-            #region Fields
+#region Fields
 
             protected Dictionary<TKey, SynchronizedObservableGrouping> m_keyDictionary;
             protected readonly ObservableGroupingCollection<TKey, TValue> m_valuesCollection;
 
-            #endregion
+#endregion
 
-            #region Constructors
+#region Constructors
 
             protected internal SynchronizedObservableGroupCollection(ObservableGroupingCollection<TKey, TValue> valuesCollection, IEqualityComparer<TKey>? keyEqualityComparer)
             {
                 m_valuesCollection = valuesCollection;
-                m_keyDictionary = keyEqualityComparer is null 
+                m_keyDictionary = keyEqualityComparer is null
                     ? new Dictionary<TKey, SynchronizedObservableGrouping>()
                     : new Dictionary<TKey, SynchronizedObservableGrouping>(keyEqualityComparer);
                 KeyEqualityComparer = keyEqualityComparer;
             }
 
-            #endregion
+#endregion
 
-            #region Properties
+#region Properties
 
             public IEqualityComparer<TKey>? KeyEqualityComparer { get; }
 
             public IEnumerable<TKey> Keys => m_keyDictionary.Keys;
-            
+
             public IEnumerable<SynchronizedObservableGrouping> Values => m_keyDictionary.Values;
-            
+
             bool ICollection.IsSynchronized => true;
 
             object ICollection.SyncRoot
@@ -70,12 +70,14 @@ namespace System.Collections.Specialized
             /// <inheritdoc />
             IObservableGrouping<TKey, TValue> IReadOnlyList<IObservableGrouping<TKey, TValue>>.this[int index] => this[index];
 
-            #endregion
+#endregion
 
-            #region Public members
+#region Public members
 
             /// <inheritdoc />
             public bool ContainsKey(TKey key) => m_keyDictionary.ContainsKey(key);
+
+            public bool Contains(IObservableGrouping<TKey, TValue> item) => m_keyDictionary.ContainsKey(item.Key);
 
             /// <inheritdoc />
             public bool TryGetValue(TKey key, out SynchronizedObservableGrouping value) => m_keyDictionary.TryGetValue(key, out value);
@@ -92,6 +94,39 @@ namespace System.Collections.Specialized
                     return grouping;
                 Add(grouping = factory());
                 return grouping;
+            }
+
+            void ICollection<IObservableGrouping<TKey, TValue>>.Add(IObservableGrouping<TKey, TValue> item)
+            {
+                if (!(item is SynchronizedObservableGrouping grouping))
+                    throw new ArgumentException("The type of the item must derive from SynchronizedObservableGrouping.");
+                Add(grouping);
+            }
+
+            public virtual bool Remove(IObservableGrouping<TKey, TValue> item)
+            {
+                var comparer = KeyEqualityComparer ?? EqualityComparer<TKey>.Default;
+                for (int i = 0; i < Count; i++)
+                {
+                    if (comparer.Equals(Items[i].Key, item.Key))
+                    {
+                        RemoveItem(i);
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            public void CopyTo(IObservableGrouping<TKey, TValue>[] array, int arrayIndex)
+            {
+                if (arrayIndex < 0)
+                    throw new ArgumentOutOfRangeException(nameof(arrayIndex));
+                if (Count > arrayIndex + array.Length)
+                    throw new IndexOutOfRangeException();
+                int index = arrayIndex;
+                for (int i = 0; i < Count; i++)
+                    array[index++] = this[i];
             }
 
             public IEnumerable<SynchronizedObservableGrouping> AsEnumerable => this;
@@ -123,9 +158,9 @@ namespace System.Collections.Specialized
                 }
             }
 
-            #endregion
-            
-            #region Overrides
+#endregion
+
+#region Overrides
 
             protected override void ClearItems()
             {
@@ -147,13 +182,14 @@ namespace System.Collections.Specialized
                 if (oldIndex == newIndex)
                     return;
 
-                SynchronizedObservableGrouping shiftedItem = this[newIndex];
                 SynchronizedObservableGrouping movedItem = this[oldIndex];
 
                 base.MoveItem(oldIndex, newIndex);
 
-                int movedItemIndex = IndexOf(movedItem);
-                int movedItemCount = movedItem.Count;
+                int movedItemIndex = IndexOf(movedItem),
+                    movedItemCount = movedItem.Count,
+                    movedItemOldStartIndex = movedItem.StartIndexInclusive;
+                
                 if (newIndex < oldIndex)
                 {
                     for (int i = movedItemIndex + 1; i <= oldIndex; i++)
@@ -188,7 +224,7 @@ namespace System.Collections.Specialized
                 }
 
                 lock (m_valuesCollection)
-                    m_valuesCollection.MoveRange(movedItem.StartIndexInclusive, shiftedItem.StartIndexInclusive, movedItem.Count);
+                    m_valuesCollection.MoveRange(movedItemOldStartIndex, movedItem.StartIndexInclusive, movedItem.Count);
             }
 
             protected override void SetItem(int index, SynchronizedObservableGrouping item)
@@ -218,42 +254,7 @@ namespace System.Collections.Specialized
                     m_valuesCollection.RemoveRange(item.StartIndexInclusive, item.Count);
             }
 
-            void ICollection<IObservableGrouping<TKey, TValue>>.Add(IObservableGrouping<TKey, TValue> item)
-            {
-                if (!(item is SynchronizedObservableGrouping grouping))
-                    throw new ArgumentException("The type of the item must derive from SynchronizedObservableGrouping.");
-                Add(grouping);
-            }
-
-            public bool Contains(IObservableGrouping<TKey, TValue> item) => m_keyDictionary.ContainsKey(item.Key);
-
-            public void CopyTo(IObservableGrouping<TKey, TValue>[] array, int arrayIndex)
-            {
-                if (arrayIndex < 0)
-                    throw new ArgumentOutOfRangeException(nameof(arrayIndex));
-                if (Count > arrayIndex + array.Length)
-                    throw new IndexOutOfRangeException();
-                int index = arrayIndex;
-                for (int i = 0; i < Count; i++)
-                    array[index++] = this[i];
-            }
-
-            public virtual bool Remove(IObservableGrouping<TKey, TValue> item)
-            {
-                var comparer = KeyEqualityComparer ?? EqualityComparer<TKey>.Default;
-                for (int i = 0; i < Count; i++)
-                {
-                    if (comparer.Equals(Items[i].Key, item.Key))
-                    {
-                        RemoveItem(i);
-                        return true;
-                    }
-                }
-
-                return false;
-            }
-
-            #endregion
+#endregion
         }
     }
 }

@@ -11,8 +11,9 @@ namespace System.Collections.Specialized
     /// <typeparam name="T">The type of elements in the collection.</typeparam>
     public interface IObservableCollection<T>
         : ICollection<T>, INotifyCollectionChanged, INotifyPropertyChanged
-    { }
-    
+    {
+    }
+
     /// <summary>
     /// Represents a dynamic data collection of items with a common key, that provides notifications when items get added, removed, or when the whole list is refreshed. 
     /// </summary>
@@ -21,12 +22,14 @@ namespace System.Collections.Specialized
     public interface IObservableGrouping<out TKey, TValue>
         : IGrouping<TKey, TValue>, IList<TValue>, INotifyCollectionChanged, INotifyPropertyChanged
         where TKey : notnull
-    { }
-    
+    {
+    }
+
     public interface IObservableGroupCollection<TKey, TValue>
         : IObservableCollection<IObservableGrouping<TKey, TValue>>, IReadOnlyList<IObservableGrouping<TKey, TValue>>, ICollection
         where TKey : notnull
-    { }
+    {
+    }
 
     /// <summary>
     /// Represents a mutable collection of items grouped by keys.
@@ -85,7 +88,7 @@ namespace System.Collections.Specialized
         /// <exception cref="ArgumentNullException">Thrown when the <paramref name="key"/> is null.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Thrown when a grouping with the same <paramref name="key"/> already exists.</exception>
         IGrouping<TKey, TValue> Create(in TKey key);
-                    
+
         /// <summary>
         /// Represents the collection of unique keys of groups.
         /// </summary>

@@ -8,7 +8,7 @@ namespace System.Collections.Specialized
 {
     public partial class ObservableGroupingCollection<TKey, TValue>
     {
-        [DebuggerDisplay("Count = {Count}, Range=[{StartIndexInclusive}..{EndIndexExclusive}), Key = {Key}")]
+        [DebuggerDisplay("Count = {Count}, Range=[{StartIndexInclusive}..{EndIndexExclusive}), Key = [{Key}]")]
         [Serializable]
         public class SynchronizedObservableGrouping
             : IObservableGrouping<TKey, TValue>, ICollection

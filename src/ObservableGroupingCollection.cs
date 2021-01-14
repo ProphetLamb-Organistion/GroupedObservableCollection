@@ -13,16 +13,16 @@ namespace System.Collections.Specialized
         : ObservableCollection<TValue>, IObservableGroupingCollection<TKey, TValue>
         where TKey : notnull
     {
-        #region Fields
+#region Fields
 
         protected SynchronizedObservableGroupCollection m_groupings;
 
         [field: NonSerialized]
         private bool _throwOnBaseCall = true;
 
-        #endregion
+#endregion
 
-        #region Constructors
+#region Constructors
 
         /// <summary>
         /// Initializes a new instance of <see cref="ObservableGroupingCollection{TKey,TValue}"/>.
@@ -46,7 +46,9 @@ namespace System.Collections.Specialized
         /// </summary>
         /// <param name="groupings">The data source of the collection.</param>
         public ObservableGroupingCollection(IEnumerable<IGrouping<TKey, TValue>?> groupings)
-            : this(groupings, null) { }
+            : this(groupings, null)
+        {
+        }
 
         /// <summary>
         /// Initializes a new instance of <see cref="ObservableGroupingCollection{TKey,TValue}"/> from existing <paramref name="groupings"/>, with the specified <see cref="IEqualityComparer{TKey}"/>.
@@ -59,9 +61,9 @@ namespace System.Collections.Specialized
             CopyFrom(groupings ?? throw new ArgumentNullException(nameof(groupings)));
         }
 
-        #endregion
+#endregion
 
-        #region Properties
+#region Properties
 
         IObservableGrouping<TKey, TValue> IObservableGroupingCollection<TKey, TValue>.this[in TKey key] => this[key];
 
@@ -89,26 +91,24 @@ namespace System.Collections.Specialized
 
         IReadOnlyList<IGrouping<TKey, TValue>> IGroupingCollection<TKey, TValue>.Groupings => m_groupings;
 
-        #endregion
+#endregion
 
-        #region Public members
+#region Public members
 
         /// <inheritdoc />
         public void Add(TKey key, TValue value)
         {
-            var grouping = m_groupings.GetOrAdd(key, () => new SynchronizedObservableGrouping(key, this));
-
+            SynchronizedObservableGrouping grouping = m_groupings.GetOrAdd(key, () => new SynchronizedObservableGrouping(key, this));
             GroupAdd(grouping, value);
         }
-        
+
         /// <inheritdoc />
         public void Add(IGrouping<TKey, TValue> grouping) => Add(grouping.Key, grouping);
-        
+
         /// <inheritdoc />
         public void Add(TKey key, IEnumerable<TValue> values)
         {
             SynchronizedObservableGrouping grouping = m_groupings.GetOrAdd(key, () => new SynchronizedObservableGrouping(key, this));
-
             GroupAdd(grouping, values.ToList());
         }
 
@@ -120,13 +120,13 @@ namespace System.Collections.Specialized
         {
             if (m_groupings.ContainsKey(key))
                 throw new ArgumentOutOfRangeException(nameof(key));
-            
+
             SynchronizedObservableGrouping created = new SynchronizedObservableGrouping(key, this);
             m_groupings.Add(created);
 
             return created;
         }
-        
+
         /// <inheritdoc />
         public bool Remove(in TKey key)
         {
@@ -136,29 +136,26 @@ namespace System.Collections.Specialized
             return true;
         }
 
-        #endregion
+#endregion
 
-        #region Private members
+#region Private members
 
         protected void CopyFrom(IEnumerable<IGrouping<TKey, TValue>?> groupings)
         {
             CheckReentrancy();
-            using (BlockReentrancy())
+            foreach (IGrouping<TKey, TValue>? g in groupings)
             {
-                foreach (IGrouping<TKey, TValue>? g in groupings)
+                if (g is null)
+                    continue;
+                if (g.Key is null)
+                    throw new NullReferenceException("IGrouping.Key can not be null.");
+                SynchronizedObservableGrouping grouping = new SynchronizedObservableGrouping(g.Key, this)
                 {
-                    if (g is null)
-                        continue;
-                    if (g.Key is null)
-                        throw new NullReferenceException("IGrouping.Key can not be null.");
-                    SynchronizedObservableGrouping grouping = new SynchronizedObservableGrouping(g.Key, this)
-                    { 
-                        EndIndexExclusive = Count,
-                        StartIndexInclusive = Count
-                    };
-                    m_groupings.Add(grouping);
-                    GroupAdd(grouping, g.ToList());
-                }
+                    EndIndexExclusive = Count,
+                    StartIndexInclusive = Count
+                };
+                m_groupings.Add(grouping);
+                GroupAdd(grouping, g.ToList());
             }
         }
 
@@ -171,11 +168,12 @@ namespace System.Collections.Specialized
         protected virtual void GroupAdd(SynchronizedObservableGrouping grouping, TValue item, int relativeIndex = -1)
         {
             CheckReentrancy();
-            Debug.Assert(relativeIndex == -1 || (uint)relativeIndex <= (uint)grouping.Count, "desiredIndex == -1 || (uint)desiredIndex <= (uint)group.Count");
+            if (relativeIndex != -1 && (uint)relativeIndex > (uint)grouping.Count)
+                throw new ArgumentOutOfRangeException(nameof(relativeIndex));
 
             grouping.EndIndexExclusive++;
             m_groupings.OffsetAfterGroup(grouping, 1);
-            
+
             BaseCallCheckin();
             InsertItem(relativeIndex == -1 ? grouping.EndIndexExclusive - 1 /* EndIndexExclusive incremented before call */ : grouping.StartIndexInclusive + relativeIndex, item);
             BaseCallCheckout();
@@ -192,7 +190,7 @@ namespace System.Collections.Specialized
             CheckReentrancy();
             if (relativeIndex < -1 || relativeIndex > grouping.EndIndexExclusive)
                 throw new ArgumentOutOfRangeException(nameof(relativeIndex));
-            int insertionIndex = relativeIndex == -1 ?  grouping.EndIndexExclusive : grouping.StartIndexInclusive + relativeIndex;
+            int insertionIndex = relativeIndex == -1 ? grouping.EndIndexExclusive : grouping.StartIndexInclusive + relativeIndex;
 
             foreach (var item in items)
             {
@@ -202,21 +200,20 @@ namespace System.Collections.Specialized
             grouping.EndIndexExclusive += items.Count;
             m_groupings.OffsetAfterGroup(grouping, items.Count);
 
-            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, items, insertionIndex-Items.Count));
+            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, items, insertionIndex - Items.Count));
         }
 
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void ThrowOnIllegalBaseCall([CallerMemberName] string? callingFunction = null)
         {
             if (_throwOnBaseCall)
-                throw new NotSupportedException(
-                    "The operation \"" + callingFunction + "\" is not supported in GroupedObservableCollection.");
+                throw new NotSupportedException("The operation \"" + callingFunction + "\" is not supported in GroupedObservableCollection.");
         }
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void BaseCallCheckin() => _throwOnBaseCall = false;
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void BaseCallCheckout() => _throwOnBaseCall = true;
 
@@ -227,13 +224,13 @@ namespace System.Collections.Specialized
         /// <param name="count">The number of element to remove</param>
         protected virtual void RemoveRange(int startIndex, int count)
         {
+            CheckReentrancy();
             if (startIndex < 0)
                 throw new ArgumentOutOfRangeException(nameof(startIndex));
             if (count < 0)
                 throw new ArgumentOutOfRangeException(nameof(count));
             if (Count < startIndex + count)
                 throw new IndexOutOfRangeException();
-            CheckReentrancy();
             TValue[] items = new TValue[count];
             int index = startIndex + count - 1;
             for (int i = count - 1; i >= 0; i--, index--)
@@ -241,6 +238,7 @@ namespace System.Collections.Specialized
                 items[i] = Items[index];
                 Items.RemoveAt(index);
             }
+
             OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, items, startIndex));
         }
 
@@ -253,6 +251,7 @@ namespace System.Collections.Specialized
         /// <param name="itemsCount">The number of elements to insert.</param>
         protected virtual void InsertRange(int startIndex, IReadOnlyList<TValue> items, int itemsIndex, int itemsCount)
         {
+            CheckReentrancy();
             if ((uint)startIndex > (uint)Count)
                 throw new ArgumentOutOfRangeException(nameof(startIndex));
             if (itemsIndex < 0)
@@ -261,15 +260,15 @@ namespace System.Collections.Specialized
                 throw new ArgumentOutOfRangeException(nameof(itemsCount));
             if (items.Count < itemsIndex + itemsCount)
                 throw new IndexOutOfRangeException();
-            CheckReentrancy();
             int index = startIndex;
             for (int i = itemsIndex; i < itemsCount; i++, index++)
             {
                 Items.Insert(index, items[i]);
             }
+
             OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, items, startIndex));
         }
-        
+
         /// <summary>
         /// Moves a section of elements in the collection.
         /// </summary>
@@ -282,7 +281,8 @@ namespace System.Collections.Specialized
             TValue[] items = new TValue[count];
             var offsetStartIndex = oldIndex;
             var offsetTargetIndex = newIndex;
-            for (var i = count - 1; i >= 0; i--) {
+            for (var i = count - 1; i >= 0; i--)
+            {
                 TValue item = Items[offsetStartIndex + i];
                 items[i] = item;
 
@@ -290,16 +290,17 @@ namespace System.Collections.Specialized
                 if (offsetTargetIndex > offsetStartIndex + i)
                     offsetTargetIndex -= 1;
 
-                Items.Insert(offsetTargetIndex, item);            
+                Items.Insert(offsetTargetIndex, item);
                 if (offsetStartIndex > offsetTargetIndex)
-                    offsetStartIndex += 1;            
+                    offsetStartIndex += 1;
             }
+
             OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Move, items, newIndex, oldIndex));
         }
 
-        #endregion
+#endregion
 
-        #region Overrides
+#region Overrides
 
         /// <summary>
         /// Called by base class ObservableCollection&lt;T&gt; when the list is being cleared
@@ -337,6 +338,6 @@ namespace System.Collections.Specialized
             base.MoveItem(oldIndex, newIndex);
         }
 
-        #endregion
+#endregion
     }
 }

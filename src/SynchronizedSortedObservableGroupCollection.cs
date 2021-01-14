@@ -15,13 +15,13 @@ namespace System.Collections.Specialized
         public class SynchronizedSortedObservableGroupCollection
             : SynchronizedObservableGroupCollection
         {
-            #region Fields
+#region Fields
 
             private readonly IComparer<SynchronizedObservableGrouping>? _wrappedKeyComparer;
 
-            #endregion
+#endregion
 
-            #region Constructors
+#region Constructors
 
             protected internal SynchronizedSortedObservableGroupCollection(
                 IEnumerable<SynchronizedObservableGrouping>? source,
@@ -36,40 +36,40 @@ namespace System.Collections.Specialized
                     CopyFrom(source);
             }
 
-            #endregion
+#endregion
 
-            #region Properties
+#region Properties
 
             /// <inheritdoc />
             public override bool IsSorted => true;
 
             public IComparer<TKey> Comparer { get; }
 
-            #endregion
+#endregion
 
-            #region Public members
+#region Public members
 
             public void CopyFrom(IEnumerable<SynchronizedObservableGrouping> source)
             {
                 foreach (SynchronizedObservableGrouping grouping in source)
                 {
-                     InsertItem(Count, grouping);   
+                    InsertItem(Count, grouping);
                 }
             }
 
-            #endregion
+#endregion
 
-            #region Private members
-            
+#region Private members
+
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             private void ThrowOnIllegalBaseCall([CallerMemberName] string? callingFunction = null)
             {
                 throw new NotSupportedException("The operation \"" + callingFunction + "\" is not supported in SynchronizedSortedObservableGroupCollection.");
             }
 
-            #endregion
+#endregion
 
-            #region Overrides
+#region Overrides
 
             protected override void InsertItem(int index, SynchronizedObservableGrouping item)
             {
@@ -99,7 +99,7 @@ namespace System.Collections.Specialized
                 item.StartIndexInclusive = index;
                 lock (m_valuesCollection)
                     m_valuesCollection.Groupings.OffsetAfterGroup(item, offset);
-                
+
                 m_keyDictionary.Remove(oldItem.Key);
                 m_keyDictionary.Add(item.Key, item);
                 base.SetItem(index, item);
@@ -118,7 +118,7 @@ namespace System.Collections.Specialized
                 }
             }
 
-            #endregion
+#endregion
         }
     }
 }
