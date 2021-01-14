@@ -86,6 +86,29 @@ namespace GroupedObservableCollection.Test
             {
                 col.Groupings.Move(i, ThreadLocalRandom.Next(0, col.Groupings.Count - 1));
             }
+            foreach (var grouping in col.Groupings)
+            {
+                int keyIndex = grouping.Key.KeyIndex;
+                foreach (var item in grouping.AsEnumerable())
+                {
+                    Assert.AreEqual(keyIndex, item.KeyIndex);
+                }
+            }
+            Assert.Pass();
+        }
+
+        [Test]
+        public void Test_GroupElementsGrouping()
+        {
+            var col = new ObservableGroupingCollection<KeyStru, ValueClass>(Resources.Instance.EnumerateSampleDataGrouped());
+            foreach (var grouping in col.Groupings)
+            {
+                int keyIndex = grouping.Key.KeyIndex;
+                foreach (var item in grouping.AsEnumerable())
+                {
+                    Assert.AreEqual(keyIndex, item.KeyIndex);
+                }
+            }
             Assert.Pass();
         }
     }

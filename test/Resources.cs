@@ -9,17 +9,19 @@ using System.Xml;
 namespace GroupedObservableCollection.Test
 {
     [StructLayout(LayoutKind.Sequential)]
-    [DebuggerDisplay("{Name}")]
+    [DebuggerDisplay("{KeyIndex}, Name = {Name}")]
     public readonly struct KeyStru : IEquatable<KeyStru>
     {
-        public KeyStru(string name, int precedence)
+        public KeyStru(string name, int precedence, int keyIndex)
         {
             Name = name;
             Precedence = precedence;
+            KeyIndex = keyIndex;
         }
 
         public readonly string Name;
         public readonly int Precedence;
+        public readonly int KeyIndex;
 
         public bool Equals(KeyStru other)
         {
@@ -56,17 +58,19 @@ namespace GroupedObservableCollection.Test
         public int GetHashCode(KeyStru obj) => obj.GetHashCode();
     }
     
-    [DebuggerDisplay("{Value}")]
+    [DebuggerDisplay("{KeyIndex}, Value = {Value}")]
     public class ValueClass
     {
-        public ValueClass(string value)
+        public ValueClass(string value, int keyIndex)
         {
             CreationDt = DateTimeOffset.Now;
             Value = value;
+            KeyIndex = keyIndex;
         }
 
         public DateTimeOffset CreationDt { get; set; }
         public string Value { get; set; }
+        public int KeyIndex { get; set; }
     }
 
     public class Resources
@@ -87,13 +91,14 @@ namespace GroupedObservableCollection.Test
             Keys = new KeyStru[KeyCount];
             for (var i = 0; i < KeyCount; i++)
             {
-                Keys[i] = new KeyStru(RandomString(3, 10), ThreadLocalRandom.Next(0, 9));
+                Keys[i] = new KeyStru(RandomString(3, 10), ThreadLocalRandom.Next(0, 9), i);
             }
             for (var i = 0; i < SampleCount; i++)
             {
+                var key = ThreadLocalRandom.Choose(Keys);
                 SampleData[i] = KeyValuePair.Create(
-                    ThreadLocalRandom.Choose(Keys),
-                    new ValueClass(RandomString(50, 100)));
+                    key,
+                    new ValueClass(RandomString(50, 100), key.KeyIndex));
             }
         }
 
