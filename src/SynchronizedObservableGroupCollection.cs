@@ -173,8 +173,14 @@ namespace System.Collections.Specialized
 
             protected override void InsertItem(int index, SynchronizedObservableGrouping item)
             {
-                m_keyDictionary.Add(item.Key, item);
                 base.InsertItem(index, item);
+                m_keyDictionary.Add(item.Key, item);
+
+                int itemsIndex = index == 0 
+                    ? 0
+                    : Items[index - 1].EndIndexExclusive;
+                item.EndIndexExclusive = itemsIndex;
+                item.StartIndexInclusive = itemsIndex;
             }
 
             protected override void MoveItem(int oldIndex, int newIndex)
@@ -182,10 +188,9 @@ namespace System.Collections.Specialized
                 if (oldIndex == newIndex)
                     return;
 
-                SynchronizedObservableGrouping movedItem = Items[oldIndex];
-
                 base.MoveItem(oldIndex, newIndex);
 
+                SynchronizedObservableGrouping movedItem = Items[newIndex];
                 int movedItemOldStartIndex = movedItem.StartIndexInclusive,
                     loIndex = Math.Min(newIndex, oldIndex),
                     hiIndex = Math.Max(newIndex, oldIndex);
@@ -215,9 +220,9 @@ namespace System.Collections.Specialized
                 SynchronizedObservableGrouping oldItem = this[index];
                 int offset = item.Count - oldItem.Count;
                 
+                base.SetItem(index, item);
                 m_keyDictionary.Remove(oldItem.Key);
                 m_keyDictionary.Add(item.Key, item);
-                base.SetItem(index, item);
 
                 item.EndIndexExclusive = index + item.Count;
                 item.StartIndexInclusive = index;

@@ -1,7 +1,8 @@
 ﻿using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+
+using GroupedObservableCollection;
 using GroupedObservableCollection.Import;
 
 namespace System.Collections.Specialized
@@ -76,11 +77,13 @@ namespace System.Collections.Specialized
                 // Add calls with index = Items.Count, otherwise insertion
                 if (index != Items.Count)
                     ThrowOnIllegalBaseCall();
+                if (item.Count != 0)
+                    throw new ArgumentException("Cannot add a grouping that already contains items.");
                 int insertionIndex = ~CollectionSortHelper<SynchronizedObservableGrouping>.BinarySearch(this, 0, Count, item, _wrappedKeyComparer);
                 // Inverts the result, if the search yielded no result
                 if (insertionIndex < 0)
                     throw new ArgumentException("Key already exists in collection.");
-
+                
                 base.InsertItem(insertionIndex, item);
             }
 
