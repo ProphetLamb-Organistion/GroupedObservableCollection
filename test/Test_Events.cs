@@ -1,4 +1,6 @@
-﻿using NUnit.Framework;
+﻿using System;
+
+using NUnit.Framework;
 
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -81,6 +83,8 @@ namespace GroupedObservableCollection.Test
 
             Assert.AreEqual(0, eventAccumulator.Count(x => x.Action != NotifyCollectionChangedAction.Move));
             Assert.AreEqual(Resources.Instance.SampleCount, eventAccumulator.Select(x => x.OldItems.Count).Aggregate((x, y) => x + y));
+            
+            Assert.Pass();
         }
 
         [Test]
@@ -105,6 +109,8 @@ namespace GroupedObservableCollection.Test
             Assert.AreEqual(0, eventAccumulator.Count(x => x.Action != NotifyCollectionChangedAction.Remove));
             Assert.AreEqual(Resources.Instance.SampleCount, eventAccumulator.Select(x => x.OldItems.Count).Aggregate((x, y) => x + y));
             Assert.AreEqual(0, col.Count);
+
+            Assert.Pass();
         }
 
         [Test]
@@ -126,6 +132,8 @@ namespace GroupedObservableCollection.Test
             Assert.AreEqual(0, eventAccumulator.Count(x => x.Action != NotifyCollectionChangedAction.Replace));
             Assert.AreEqual(Resources.Instance.SampleCount, eventAccumulator.Select(x => x.OldItems.Count).Aggregate((x, y) => x + y));
             Assert.AreEqual(Resources.Instance.SampleCount, col.Count);
+            
+            Assert.Pass();
         }
 
         [Test]
@@ -148,6 +156,8 @@ namespace GroupedObservableCollection.Test
             Assert.AreEqual(groups.Length, resetEventAccumulator.Count(x => x.Action == NotifyCollectionChangedAction.Reset));
 
             Assert.AreEqual(0, col.Count);
+            
+            Assert.Pass();
         }
 
         [Test]
@@ -167,6 +177,8 @@ namespace GroupedObservableCollection.Test
             Assert.AreEqual(Resources.Instance.SampleCount, removeEventAccumulator.Select(x => x.OldItems.Count).Aggregate((x, y) => x + y));
 
             Assert.AreEqual(0, col.Count);
+
+            Assert.Pass();
         }
     }
 }
