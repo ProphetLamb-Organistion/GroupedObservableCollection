@@ -98,7 +98,7 @@ namespace System.Collections.Specialized
         /// <inheritdoc />
         public void Add(TKey key, TValue value)
         {
-            SynchronizedObservableGrouping grouping = m_groupings.GetOrAdd(key, () => new SynchronizedObservableGrouping(key, this));
+            SynchronizedObservableGrouping grouping = m_groupings.GetOrAdd(key, () => GroupingFactory(key));
             GroupAdd(grouping, value);
         }
 
@@ -108,7 +108,7 @@ namespace System.Collections.Specialized
         /// <inheritdoc />
         public void Add(TKey key, IEnumerable<TValue> values)
         {
-            SynchronizedObservableGrouping grouping = m_groupings.GetOrAdd(key, () => new SynchronizedObservableGrouping(key, this));
+            SynchronizedObservableGrouping grouping = m_groupings.GetOrAdd(key, () => GroupingFactory(key));
             GroupAdd(grouping, values.ToList());
         }
 
@@ -121,7 +121,7 @@ namespace System.Collections.Specialized
             if (m_groupings.ContainsKey(key))
                 throw new ArgumentOutOfRangeException(nameof(key));
 
-            SynchronizedObservableGrouping created = new SynchronizedObservableGrouping(key, this);
+            SynchronizedObservableGrouping created = GroupingFactory(key);
             m_groupings.Add(created);
 
             return created;
@@ -149,13 +149,8 @@ namespace System.Collections.Specialized
                     continue;
                 if (g.Key is null)
                     throw new NullReferenceException("IGrouping.Key can not be null.");
-                SynchronizedObservableGrouping grouping = new SynchronizedObservableGrouping(g.Key, this)
-                {
-                    EndIndexExclusive = Count,
-                    StartIndexInclusive = Count
-                };
-                m_groupings.Add(grouping);
-                GroupAdd(grouping, g.ToList());
+
+                GroupAdd(Create(g.Key), g.ToList());
             }
         }
 
