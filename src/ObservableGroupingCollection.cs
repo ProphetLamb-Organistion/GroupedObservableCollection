@@ -29,16 +29,7 @@ namespace System.Collections.Specialized
         /// </summary>
         public ObservableGroupingCollection()
         {
-            m_groupings = new SynchronizedObservableGroupCollection(this, null);
-        }
-
-        /// <summary>
-        /// Initializes a new instance of <see cref="ObservableGroupingCollection{TKey,TValue}"/> with the specified <see cref="IEqualityComparer{TKey}"/>.
-        /// </summary>
-        /// <param name="keyEqualityComparer">The equality comparer used to get the hashcode of keys, and to determine if two keys are equal.</param>
-        public ObservableGroupingCollection(IEqualityComparer<TKey>? keyEqualityComparer)
-        {
-            m_groupings = new SynchronizedObservableGroupCollection(this, keyEqualityComparer);
+            m_groupings = new SynchronizedObservableGroupCollection(this);
         }
 
         /// <summary>
@@ -46,17 +37,7 @@ namespace System.Collections.Specialized
         /// </summary>
         /// <param name="groupings">The data source of the collection.</param>
         public ObservableGroupingCollection(IEnumerable<IGrouping<TKey, TValue>?> groupings)
-            : this(groupings, null)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of <see cref="ObservableGroupingCollection{TKey,TValue}"/> from existing <paramref name="groupings"/>, with the specified <see cref="IEqualityComparer{TKey}"/>.
-        /// </summary>
-        /// <param name="groupings">The data source of the collection.</param>
-        /// <param name="keyEqualityComparer">The equality comparer used to get the hashcode of keys, and to determine if two keys are equal.</param>
-        public ObservableGroupingCollection(IEnumerable<IGrouping<TKey, TValue>?> groupings, IEqualityComparer<TKey>? keyEqualityComparer)
-            : this(keyEqualityComparer)
+            : this()
         {
             CopyFrom(groupings ?? throw new ArgumentNullException(nameof(groupings)));
         }
@@ -65,7 +46,7 @@ namespace System.Collections.Specialized
 
 #region Properties
 
-        IObservableGrouping<TKey, TValue> IObservableGroupingCollection<TKey, TValue>.this[in TKey key] => this[key];
+        ISynchronizedObservableGrouping<TKey, TValue> IObservableGroupingCollection<TKey, TValue>.this[in TKey key] => this[key];
 
         IGrouping<TKey, TValue> IGroupingCollection<TKey, TValue>.this[in TKey key] => this[key];
 
@@ -79,9 +60,7 @@ namespace System.Collections.Specialized
         public SynchronizedObservableGrouping this[in TKey key] => m_groupings[key];
 
 
-        /// <summary>
-        /// Indicates whether the collection is sorted. If true, can not Insert or Move
-        /// </summary>
+        /// <inheritdoc />
         public virtual bool IsSorted => false;
 
         IObservableGroupCollection<TKey, TValue> IObservableGroupingCollection<TKey, TValue>.Groupings => Groupings;
@@ -195,7 +174,7 @@ namespace System.Collections.Specialized
             grouping.EndIndexExclusive += items.Count;
             m_groupings.OffsetAfterGroup(grouping, items.Count);
 
-            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, items, insertionIndex - Items.Count));
+            OnCollectionChanged(NotifyCollectionChangedAction.Add, items, insertionIndex - Items.Count);
         }
 
 
@@ -226,8 +205,7 @@ namespace System.Collections.Specialized
 
             TValue[] notifyBuffer = new TValue[count];
             InternalRemoveRange(startIndex, count, notifyBuffer);
-
-            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, notifyBuffer, startIndex));
+            OnCollectionChanged(NotifyCollectionChangedAction.Remove, notifyBuffer, startIndex);
         }
 
         /// <summary>
@@ -243,7 +221,7 @@ namespace System.Collections.Specialized
 
             InternalInsertRange(startIndex, items);
 
-            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, items, startIndex));
+            OnCollectionChanged(NotifyCollectionChangedAction.Add, items, startIndex);
         }
 
         /// <summary>
@@ -260,7 +238,7 @@ namespace System.Collections.Specialized
             InternalRemoveRange(oldIndex, count, movedItems);
             InternalInsertRange(newIndex, movedItems);
 
-            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Move, movedItems, newIndex, oldIndex));
+            OnCollectionChanged(NotifyCollectionChangedAction.Move, movedItems, newIndex, oldIndex);
         }
 
         protected void ThrowOnIllegalBaseCall([CallerMemberName] string? callingFunction = null)
@@ -294,6 +272,50 @@ namespace System.Collections.Specialized
             {
                 Items.Insert(index, items[i]);
             }
+        }
+
+        /*
+         * The Dotnet runtime (currently) does not support processing multiple changes in a CollectionView.
+         * Thus, for each operation on a range of items, only the first item is going to be processed, e.g. InsertRange(0, new[] { [1],[2],[3],[4] }) is analogous to Insert(0, [1]) from the perspective of the CollectionView.
+         * The only way to circumvent this behaviour is to invoke the CollectionChanged event per item changed, instead of on a list of items. This introduces additional overhead.
+         * Depending on, if the behaviour changes: Compile with COLLECTIONVIEW_EVENT_MULTICHANGE_SUPPORT defined or not.
+         *
+         * See: https://source.dot.net/PresentationFramework/System/Windows/Data/CollectionView.cs.html#https://source.dot.net/PresentationFramework/System/Windows/Data/CollectionView.cs.html,4270b8e1bdd07308
+         */
+
+        /// <summary>Use where (action & Add | Remove) != 0</summary>
+        private void OnCollectionChanged(NotifyCollectionChangedAction action, IReadOnlyList<TValue> changedItems, int startIndex)
+        {
+#if COLLECTIONVIEW_EVENT_MULTICHANGE_SUPPORT
+            OnCollectionChanged(new NotifyCollectionChangedEventArgs(action, notifyBuffer, startIndex));
+#else
+            /*
+             * NotifyCollectionChangedEventArgs creates a ReadOnlyList from the IList provided.
+             * The ReadOnlyList simply wraps the IList provided, instead of coping.
+             * We reuse the same Array, so that no additional arrays are needlessly allocated.
+             */
+            object?[] dummy = new object?[1];
+            for(int i = 0; i < changedItems.Count; i++)
+            {
+                dummy[0] = changedItems[i];
+                OnCollectionChanged(new NotifyCollectionChangedEventArgs(action, dummy, startIndex + i));
+            }
+#endif
+        }
+        
+        /// <summary>Use where action == Move</summary>
+        private void OnCollectionChanged(NotifyCollectionChangedAction action, IReadOnlyList<TValue> changedItems, int newIndex, int oldIndex)
+        {
+#if COLLECTIONVIEW_EVENT_MULTICHANGE_SUPPORT
+            OnCollectionChanged(new NotifyCollectionChangedEventArgs(action, notifyBuffer, newIndex, oldIndex));
+#else
+            object?[] dummy = new object?[1];
+            for(int i = 0; i < changedItems.Count; i++)
+            {
+                dummy[0] = changedItems[i];
+                OnCollectionChanged(new NotifyCollectionChangedEventArgs(action, dummy, newIndex + i, oldIndex + 1));
+            }
+#endif
         }
 
 #endregion
