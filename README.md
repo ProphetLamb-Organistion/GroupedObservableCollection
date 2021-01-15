@@ -36,8 +36,10 @@ Implementation of `ObservableCollection<T>` that associates items with `IGroupin
 
 Documentation generated from xml-documentation
 
-- [`IGroupCollection<TKey, TValue>`](doc/IGroupCollection{TKey-TValue}.md)
+- [`IGroupingCollection<TKey, TValue>`](doc/IGroupingCollection{TKey-TValue}.md)
+- [`IObservableCollection<T>`](doc/IObservableCollection{T}.md)
 - [`IObservableGroupCollection<TKey, TValue>`](doc/IObservableGroupCollection{TKey-TValue}.md)
-- [`IObservableGrouping<TKey, TValue>`](doc/IObservableGrouping{TKey-TValue}.md)
-- [`ObservableGroupCollection<TKey, TValue>`](doc/ObservableGroupCollection{TKey-TValue}.md)
-- [`SortedObservableGroupCollection<TKey, TValue>`](doc/SortedObservableGroupCollection{TKey-TValue}.md)
+- [`IObservableGroupingCollection<TKey, TValue>`](doc/IObservableGroupingCollection{TKey-TValue}.md)
+- [`ISynchronizedObservableGrouping<TKey, TValue>`](doc/ISynchronizedObservableGrouping{TKey-TValue}.md)
+- [`ObservableGroupingCollection<TKey, TValue>`](doc/ObservableGroupingCollection{TKey-TValue}.md)
+- [`SortedObservableGroupingCollection<TKey, TValue>`](doc/SortedObservableGroupingCollection{TKey-TValue}.md)

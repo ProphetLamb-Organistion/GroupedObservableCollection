@@ -4,20 +4,14 @@
 
 ```csharp
 public interface IObservableGroupCollection<TKey, TValue>
-    : IGroupCollection<TKey, TValue>, IReadOnlyList<TValue>, IReadOnlyCollection<TValue>, IEnumerable<TValue>, IEnumerable, INotifyCollectionChanged, INotifyPropertyChanged
+    : IObservableCollection<ISynchronizedObservableGrouping<TKey, TValue>>, ICollection<ISynchronizedObservableGrouping<TKey, TValue>>, IEnumerable<ISynchronizedObservableGrouping<TKey, TValue>>, IEnumerable, INotifyCollectionChanged, INotifyPropertyChanged, IReadOnlyList<ISynchronizedObservableGrouping<TKey, TValue>>, IReadOnlyCollection<ISynchronizedObservableGrouping<TKey, TValue>>, ICollection
 ```
 
 ## Properties
 
 | Type | Name | Summary |
 | --- | --- | --- |
-| `IObservableGrouping<TKey, TValue>` | Item |  |
-
-## Methods
-
-| Type | Name | Summary |
-| --- | --- | --- |
-| `Boolean` | TryGetGrouping(`TKey&` key, `IObservableGrouping`2&` grouping) |  |
+| `Boolean` | IsSorted |  |
 
 ---
 
