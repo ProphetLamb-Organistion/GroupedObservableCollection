@@ -7,9 +7,8 @@ install:
   - dotnet restore
   - cd ../test
   - dotnet restore
+  - cd ../
 script:
-  - cd src
-  - dotnet build
-  - cd ../test
-  - dotnet build
+  - dotnet build --configuration Test
+  - cd test
   - dotnet test
