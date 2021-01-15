@@ -128,14 +128,26 @@ namespace System.Collections.Specialized
         protected void CopyFrom(IEnumerable<IGrouping<TKey, TValue>?> groupings)
         {
             CheckReentrancy();
-            foreach (IGrouping<TKey, TValue>? g in groupings)
+            using (BlockReentrancy())
             {
-                if (g is null)
-                    continue;
-                if (g.Key is null)
-                    throw new NullReferenceException("IGrouping.Key can not be null.");
-
-                GroupAdd(Create(g.Key), g.ToList());
+                foreach (IGrouping<TKey, TValue>? g in groupings)
+                {
+                    if (g is null)
+                        continue;
+                    if (g.Key is null)
+                        throw new NullReferenceException("IGrouping.Key can not be null.");
+                    if (!m_groupings.TryGetValue(g.Key, out SynchronizedObservableGrouping grouping))
+                    {
+                        grouping = GroupingFactory(g.Key);
+                        m_groupings.Add(grouping);
+                    }
+                    int index = grouping.EndIndexExclusive;
+                    foreach (TValue item in g)
+                    {
+                        Items.Insert(index++, item);
+                    }
+                    grouping.EndIndexExclusive = index;
+                }
             }
         }
 
@@ -287,7 +299,7 @@ namespace System.Collections.Specialized
             }
         }
 
-        public void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+        private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         {
             OnPropertyChanged(new PropertyChangedEventArgs(propertyName));
         }
