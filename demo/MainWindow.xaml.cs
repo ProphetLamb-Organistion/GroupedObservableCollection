@@ -34,5 +34,11 @@ namespace GroupedObservableCollection.Demo
         {
             _model.BeginLoadingSampleData(Dispatcher.InvokeAsync);
         }
+
+        private void RemoveGroup_Click(object sender, RoutedEventArgs e)
+        {
+            if (!(_model.SelectedGroupIndex is null))
+                _model.Groupings.RemoveAt(_model.SelectedGroupIndex.Value);
+        }
     }
 }

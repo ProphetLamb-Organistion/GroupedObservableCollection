@@ -3,14 +3,17 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
         xmlns:local="clr-namespace:GroupedObservableCollection.Demo"
         xmlns:viewModels="clr-namespace:GroupedObservableCollection.Demo.ViewModels"
+        xmlns:valueConverters="clr-namespace:GroupedObservableCollection.Demo.ValueConverters"
         mc:Ignorable="d"
         DataContext="{DynamicResource Model}"
         Loaded="MainWindow_OnLoaded"
         Title="MainWindow" Height="450" Width="800">
     <Window.Resources>
         <viewModels:MainWindowViewModel x:Key="Model"/>
+        <valueConverters:CountToMaximumIndexConverter x:Key="CountToMaximumIndexConverter"/>
     </Window.Resources>
     <Grid>
         <ListView x:Name="GroupedItemsListView"
@@ -29,7 +32,8 @@
         <ListView x:Name="GroupsListView"
                   Grid.Row="0"
                   Grid.Column="1"
-                  ItemsSource="{Binding Groupings}">
+                  ItemsSource="{Binding Groupings}"
+                  SelectedItem="{Binding SelectedGroup}">
             <ListView.View>
                 <GridView>
                     <GridViewColumn DisplayMemberBinding="{Binding Key}" Header="Key"/>
@@ -41,10 +45,46 @@
         </ListView>
         <GroupBox Header="Items"
                   Grid.Row="1"
-                  Grid.Column="0"></GroupBox>
+                  Grid.Column="0">
+            <Grid>
+                <Label Content="Type"
+                       Grid.Row="0"/>
+                <ComboBox SelectedItem="{Binding NewPersonType}"
+                          Grid.Row="0"
+                          Grid.Column="1"/>
+                <Label Content="Prename"
+                       Grid.Row="1"/>
+                <TextBox Text="{Binding NewPersonPrename}"
+                         Grid.Row="1"
+                         Grid.Column="1"/>
+                <Label Content="Surname"
+                       Grid.Row="2"/>
+                <TextBox Text="{Binding NewPersonSurname}"
+                         Grid.Row="2"
+                         Grid.Column="1"/>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="25"/>
+                    <RowDefinition Height="25"/>
+                    <RowDefinition Height="25"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="100"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+            </Grid>
+        </GroupBox>
         <GroupBox Header="Groups"
                   Grid.Row="1"
-                  Grid.Column="1"></GroupBox>
+                  Grid.Column="1">
+            <WrapPanel>
+                <xctk:IntegerUpDown Value="{Binding SelectedGroupIndex}"
+                                    Minimum="0"
+                                    Maximum="{Binding Groupings.Count, Mode=OneWay, Converter={StaticResource CountToMaximumIndexConverter}}"/>
+                <Button Content="-" 
+                        Width="{Binding RelativeSource={x:Static RelativeSource.Self}, Path=ActualHeight}"
+                        Click="RemoveGroup_Click"/>
+            </WrapPanel>
+        </GroupBox>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="300"/>

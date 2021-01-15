@@ -13,4 +13,8 @@
     <ProjectReference Include="..\src\GroupedObservableCollection.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Extended.Wpf.Toolkit" Version="4.0.2" />
+  </ItemGroup>
+
 </Project>

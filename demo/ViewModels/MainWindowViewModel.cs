@@ -44,5 +44,54 @@ namespace GroupedObservableCollection.Demo.ViewModels
         public ObservableCollection<Person> Persons => PersonsGroupingCollection;
         public ObservableCollection<ISynchronizedObservableGrouping<PersonType, Person>> Groupings => PersonsGroupingCollection.Groupings;
 
+        private PersonType _newPersonType;
+        public PersonType NewPersonType
+        {
+            get => _newPersonType;
+            set => Set(ref _newPersonType, value);
+        }
+
+        private string _newPersonPrename;
+
+        public string NewPersonPrename
+        {
+            get => _newPersonPrename;
+            set => Set(ref _newPersonPrename, value);
+        }
+        private string _newPersonSurname;
+
+        public string NewPersonSurname
+        {
+            get => _newPersonSurname;
+            set => Set(ref _newPersonSurname, value);
+        }
+
+        private ISynchronizedObservableGrouping<PersonType, Person>? _selectedGroup;
+        public ISynchronizedObservableGrouping<PersonType, Person>? SelectedGroup
+        {
+            get => _selectedGroup;
+            set
+            {
+                Set(ref _selectedGroup, value);
+                int index;
+                if (!(value is null) && (index = Groupings.IndexOf(value)) != -1)
+                    Set(ref _selectedGroupIndex, index, nameof(SelectedGroupIndex));
+                else
+                    Set(ref _selectedGroup, null, nameof(SelectedGroupIndex));
+            }
+        }
+
+        private int? _selectedGroupIndex;
+        public int? SelectedGroupIndex
+        {
+            get => _selectedGroupIndex;
+            set
+            {
+                if (_selectedGroupIndex is null || value is null)
+                    return;
+                Groupings.Move(_selectedGroupIndex.Value, value.Value);
+                Set(ref _selectedGroupIndex, value);
+            }
+        }
     }
 }
