@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,22 +12,28 @@ namespace GroupedObservableCollection.Demo.ViewModels
 {
     public class MainWindowViewModel : ViewModelBase
     {
-        internal readonly object PersonsLock = new object();
+        public readonly object PersonsLock = new object();
 
         public MainWindowViewModel()
         {
-            Persons = new ObservableGroupingCollection<PersonType, Person>();
+            PersonsGroupingCollection = new ObservableGroupingCollection<PersonType, Person>();
             BindingOperations.EnableCollectionSynchronization(Persons, PersonsLock);
+        }
+
+        public void BeginLoadingSampleData()
+        {
             Task.Run(delegate
             {
                 foreach (var grouping in PersonSource.Instance.EnumerateSampleDataGrouped())
                 {
                     lock (PersonsLock)
-                        Persons.Add(grouping);
+                        PersonsGroupingCollection.Add(grouping);
                 }
             });
         }
 
-        public ObservableGroupingCollection<PersonType, Person> Persons { get; }
+        public ObservableGroupingCollection<PersonType, Person> PersonsGroupingCollection { get; }
+        public ObservableCollection<Person> Persons => PersonsGroupingCollection;
+
     }
 }

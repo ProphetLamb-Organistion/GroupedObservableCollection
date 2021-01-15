@@ -23,15 +23,16 @@ namespace GroupedObservableCollection.Demo
     /// </summary>
     public partial class MainWindow : Window
     {
-        private MainWindowViewModel _model;
+        private readonly MainWindowViewModel _model;
         public MainWindow()
         {
             InitializeComponent();
             _model = (MainWindowViewModel)Resources["Model"];
-            GroupedItemsListView.ItemsSource = _model.Persons;
-            ICollectionView groupedItemsView = CollectionViewSource.GetDefaultView(GroupedItemsListView.ItemsSource);
-            groupedItemsView.GroupDescriptions.Clear();
-            groupedItemsView.GroupDescriptions.Add(new PropertyGroupDescription("Type"));
+        }
+
+        private void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
+        {
+            _model.BeginLoadingSampleData();
         }
     }
 }

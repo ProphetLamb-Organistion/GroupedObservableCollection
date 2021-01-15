@@ -7,6 +7,7 @@
         xmlns:viewModels="clr-namespace:GroupedObservableCollection.Demo.ViewModels"
         mc:Ignorable="d"
         DataContext="{DynamicResource Model}"
+        Loaded="MainWindow_OnLoaded"
         Title="MainWindow" Height="450" Width="800">
     <Window.Resources>
         <viewModels:MainWindowViewModel x:Key="Model"/>
@@ -14,7 +15,8 @@
     <Grid>
         <ListView x:Name="GroupedItemsListView"
                   Grid.Row="0"
-                  Grid.Column="0">
+                  Grid.Column="0"
+                  ItemsSource="{Binding Source=Model, Path=Persons}">
             <ListView.View>
                 <GridView AllowsColumnReorder="True">
                     <GridViewColumn DisplayMemberBinding="{Binding Path=Type}" Header="Type"/>
@@ -23,19 +25,11 @@
                     <GridViewColumn DisplayMemberBinding="{Binding Path=DateOfBirth}" Header="Date of birth"/>
                 </GridView>
             </ListView.View>
-            <ListView.GroupStyle>
-                <GroupStyle>
-                    <GroupStyle.HeaderTemplate>
-                        <DataTemplate>
-                            <TextBlock Text="{Binding Path=Type}"/>
-                        </DataTemplate>
-                    </GroupStyle.HeaderTemplate>
-                </GroupStyle>
-            </ListView.GroupStyle>
         </ListView>
         <ListView x:Name="GroupsListView"
                   Grid.Row="0"
-                  Grid.Column="1">
+                  Grid.Column="1"
+                  ItemsSource="{Binding Source=Model, Path=Persons.Groupings}">
 
         </ListView>
         <Grid.ColumnDefinitions>

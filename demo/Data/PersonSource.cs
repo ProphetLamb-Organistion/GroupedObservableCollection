@@ -14,8 +14,8 @@ namespace GroupedObservableCollection.Demo.Data
 
         public readonly KeyValuePair<PersonType, Person>[] SampleData;
         public readonly PersonType[] Keys;
-        public readonly int SampleCount = 10000;
-        public readonly int KeyCount = (int)Math.Log(10000);
+        public readonly int SampleCount = 1000;
+        public readonly int KeyCount = (int)Math.Log(1000);
 
         public PersonSource()
         {
