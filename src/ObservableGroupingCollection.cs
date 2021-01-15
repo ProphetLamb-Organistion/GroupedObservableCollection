@@ -199,21 +199,18 @@ namespace System.Collections.Specialized
         }
 
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected void ThrowOnIllegalBaseCall([CallerMemberName] string? callingFunction = null)
+        /// <summary>
+        /// Initializes a new instance of <see cref="SynchronizedObservableGrouping"/>, with the specified key-value.
+        /// </summary>
+        /// <param name="key">The key associated with the instance.</param>
+        /// <returns>A new instance of <see cref="SynchronizedObservableGrouping"/>.</returns>
+        protected virtual SynchronizedObservableGrouping GroupingFactory(TKey key)
         {
-            if (_throwOnBaseCall)
-                throw new NotSupportedException("The operation \"" + callingFunction + "\" is not supported in GroupedObservableCollection.");
+            return new SynchronizedObservableGrouping(key, this);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected void BaseCallCheckin() => _throwOnBaseCall = false;
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected void BaseCallCheckout() => _throwOnBaseCall = true;
-
         /// <summary>
-        /// Removes a section from the collection.
+        /// Removes a section from the collection. Only invoking NotifyCollectionChanged event upon completion.
         /// </summary>
         /// <param name="startIndex">The index of the first element to remove.</param>
         /// <param name="count">The number of element to remove</param>
@@ -226,46 +223,31 @@ namespace System.Collections.Specialized
                 throw new ArgumentOutOfRangeException(nameof(count));
             if (Count < startIndex + count)
                 throw new IndexOutOfRangeException();
-            TValue[] items = new TValue[count];
-            int index = startIndex + count - 1;
-            for (int i = count - 1; i >= 0; i--, index--)
-            {
-                items[i] = Items[index];
-                Items.RemoveAt(index);
-            }
 
-            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, items, startIndex));
+            TValue[] notifyBuffer = new TValue[count];
+            InternalRemoveRange(startIndex, count, notifyBuffer);
+
+            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, notifyBuffer, startIndex));
         }
 
         /// <summary>
-        /// Inserts elements at the specified index.
+        /// Inserts elements at the specified index. Only invoking NotifyCollectionChanged event upon completion.
         /// </summary>
         /// <param name="startIndex">The index at which to insert the first element.</param>
         /// <param name="items">The collection of element to insert.</param>
-        /// <param name="itemsIndex">The index of the first element in the <paramref name="items"/> collection to insert.</param>
-        /// <param name="itemsCount">The number of elements to insert.</param>
-        protected virtual void InsertRange(int startIndex, IReadOnlyList<TValue> items, int itemsIndex, int itemsCount)
+        protected virtual void InsertRange(int startIndex, IReadOnlyList<TValue> items)
         {
             CheckReentrancy();
             if ((uint)startIndex > (uint)Count)
                 throw new ArgumentOutOfRangeException(nameof(startIndex));
-            if (itemsIndex < 0)
-                throw new ArgumentOutOfRangeException(nameof(itemsIndex));
-            if (itemsCount < 0)
-                throw new ArgumentOutOfRangeException(nameof(itemsCount));
-            if (items.Count < itemsIndex + itemsCount)
-                throw new IndexOutOfRangeException();
-            int index = startIndex;
-            for (int i = itemsIndex; i < itemsCount; i++, index++)
-            {
-                Items.Insert(index, items[i]);
-            }
+
+            InternalInsertRange(startIndex, items);
 
             OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, items, startIndex));
         }
 
         /// <summary>
-        /// Moves a section of elements in the collection.
+        /// Moves a section of elements in the collection. Only invoking NotifyCollectionChanged event upon completion.
         /// </summary>
         /// <param name="oldIndex">The starting index of elements to move.</param>
         /// <param name="newIndex">The starting index to which to move the items.</param>
@@ -273,24 +255,45 @@ namespace System.Collections.Specialized
         protected virtual void MoveRange(int oldIndex, int newIndex, int count)
         {
             CheckReentrancy();
-            TValue[] items = new TValue[count];
-            var offsetStartIndex = oldIndex;
-            var offsetTargetIndex = newIndex;
-            for (var i = count - 1; i >= 0; i--)
+
+            TValue[] movedItems = new TValue[count];
+            InternalRemoveRange(oldIndex, count, movedItems);
+            InternalInsertRange(newIndex, movedItems);
+
+            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Move, movedItems, newIndex, oldIndex));
+        }
+
+        protected void ThrowOnIllegalBaseCall([CallerMemberName] string? callingFunction = null)
+        {
+            if (_throwOnBaseCall)
+                throw new NotSupportedException("The operation \"" + callingFunction + "\" is not supported in GroupedObservableCollection.");
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected void BaseCallCheckin() => _throwOnBaseCall = false;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected void BaseCallCheckout() => _throwOnBaseCall = true;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void InternalRemoveRange(int startIndex, int count, TValue[] notifyBuffer)
+        {
+            int index = startIndex + count - 1;
+            for (int i = count - 1; i >= 0; i--, index--)
             {
-                TValue item = Items[offsetStartIndex + i];
-                items[i] = item;
-
-                Items.RemoveAt(offsetStartIndex + i);
-                if (offsetTargetIndex > offsetStartIndex + i)
-                    offsetTargetIndex -= 1;
-
-                Items.Insert(offsetTargetIndex, item);
-                if (offsetStartIndex > offsetTargetIndex)
-                    offsetStartIndex += 1;
+                notifyBuffer.SetValue(Items[index], i);
+                Items.RemoveAt(index);
             }
+        }
 
-            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Move, items, newIndex, oldIndex));
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void InternalInsertRange(int startIndex, IReadOnlyList<TValue> items)
+        {
+            int index = startIndex;
+            for (int i = 0; i < items.Count; i++, index++)
+            {
+                Items.Insert(index, items[i]);
+            }
         }
 
 #endregion
