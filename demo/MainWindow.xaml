@@ -30,15 +30,28 @@
                   Grid.Row="0"
                   Grid.Column="1"
                   ItemsSource="{Binding Groupings}">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn DisplayMemberBinding="{Binding Key}" Header="Key"/>
+                    <GridViewColumn DisplayMemberBinding="{Binding StartIndexInclusive}" Header="Index"/>
+                    <GridViewColumn DisplayMemberBinding="{Binding Count}" Header="Count"/>
+                </GridView>
+            </ListView.View>
             
         </ListView>
+        <GroupBox Header="Items"
+                  Grid.Row="1"
+                  Grid.Column="0"></GroupBox>
+        <GroupBox Header="Groups"
+                  Grid.Row="1"
+                  Grid.Column="1"></GroupBox>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="300"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="200"/>
+            <RowDefinition Height="150"/>
         </Grid.RowDefinitions>
     </Grid>
 </Window>
