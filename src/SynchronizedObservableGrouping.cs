@@ -334,7 +334,7 @@ namespace System.Collections.Specialized
                 OnPropertyChanged(IndexerPropertyName);
             }
 
-            public void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+            private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
             {
                 if (_isVerbose)
                     PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
