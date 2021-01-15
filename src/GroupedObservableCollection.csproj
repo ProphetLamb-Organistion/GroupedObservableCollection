@@ -11,6 +11,7 @@
     <PackageLicenseFile>LICENCE</PackageLicenseFile>
     <Authors>ProphetLamb</Authors>
     <Description>Implementation of `ObservableCollection&lt;TValue&gt;`  that associates items with ´IGrouping&lt;TKey, TValue&gt;`s so that the `GroupedObservableCollection&lt;TKey, TValue&gt;` can be used in WPF Binding operations while synchronizing each group from a different datasource.</Description>
+    <Configurations>Debug;Release;Test</Configurations>
   </PropertyGroup>
 
   <ItemGroup>

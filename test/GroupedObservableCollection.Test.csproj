@@ -8,6 +8,8 @@
     <IsPackable>false</IsPackable>
 
     <Platforms>AnyCPU</Platforms>
+
+    <Configurations>Debug;Release;Test</Configurations>
   </PropertyGroup>
 
   <ItemGroup>
