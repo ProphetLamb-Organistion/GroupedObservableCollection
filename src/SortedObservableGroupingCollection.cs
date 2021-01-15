@@ -17,11 +17,35 @@ namespace System.Collections.Specialized
     {
 #region Fields
 
-        private SynchronizedSortedObservableGroupCollection _groups;
+        private SynchronizedSortedObservableGroupCollection _groupings;
 
 #endregion
 
 #region Constructors
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="SortedObservableGroupingCollection{TKey,TValue}"/>. 
+        /// Requires <typeparamref name="TKey"/> and <typeparamref name="TValue"/> to implement <see cref="IComparable{TKey}"/> and <see cref="IComparable{TValue}"/> respectively.
+        /// </summary>
+        public SortedObservableGroupingCollection()
+        {
+            if (!typeof(IComparable<>).IsAssignableFrom(typeof(TKey)))
+                throw new ArgumentException("The generic type parameter TKey, does not implement IComparable<>.");
+            if (!typeof(IComparable<>).IsAssignableFrom(typeof(TValue)))
+                throw new ArgumentException("The generic type parameter TValue, does not implement IComparable<>.");
+            m_groupings = _groupings = new SynchronizedSortedObservableGroupCollection(m_groupings, this, Comparer<TKey>.Default);
+            Comparer = Comparer<TValue>.Default;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="SortedObservableGroupingCollection{TKey,TValue}"/> from existing groupings. 
+        /// Requires <typeparamref name="TKey"/> and <typeparamref name="TValue"/> to implement <see cref="IComparable{TKey}"/> and <see cref="IComparable{TValue}"/> respectively.
+        /// </summary>
+        public SortedObservableGroupingCollection(IEnumerable<IGrouping<TKey, TValue>?> groupings)
+            : this()
+        {
+            CopyFrom(groupings ?? throw new ArgumentNullException(nameof(groupings)));
+        }
 
         /// <summary>
         /// Initializes a new instance of <see cref="SortedObservableGroupingCollection{TKey,TValue}"/> with the specified key, and value comparer.
@@ -30,23 +54,7 @@ namespace System.Collections.Specialized
         /// <param name="valueComparer">The comparer used to sort values.</param>
         public SortedObservableGroupingCollection(IComparer<TKey> keyComparer, IComparer<TValue> valueComparer)
         {
-            m_groupings = _groups = new SynchronizedSortedObservableGroupCollection(m_groupings, this, null, keyComparer);
-            Comparer = valueComparer;
-        }
-
-        /// <summary>
-        /// Initializes a new instance of <see cref="SortedObservableGroupingCollection{TKey,TValue}"/> with the specified equality, key and value comparer.
-        /// </summary>
-        /// <param name="keyEqualityComparer">The equality comparer used to get the hashcode of keys, and to determine if two keys are equal.</param>
-        /// <param name="keyComparer">The comparer used to sort keys.</param>
-        /// <param name="valueComparer">The comparer used to sort values.</param>
-        public SortedObservableGroupingCollection(
-            IEqualityComparer<TKey> keyEqualityComparer,
-            IComparer<TKey> keyComparer,
-            IComparer<TValue> valueComparer)
-            : base(keyEqualityComparer)
-        {
-            m_groupings = _groups = new SynchronizedSortedObservableGroupCollection(m_groupings, this, keyEqualityComparer, keyComparer);
+            m_groupings = _groupings = new SynchronizedSortedObservableGroupCollection(m_groupings, this, keyComparer);
             Comparer = valueComparer;
         }
 
@@ -60,37 +68,18 @@ namespace System.Collections.Specialized
             IEnumerable<IGrouping<TKey, TValue>?> groupings,
             IComparer<TKey> keyComparer,
             IComparer<TValue> valueComparer)
+            : this(keyComparer, valueComparer)
         {
-            m_groupings = _groups = new SynchronizedSortedObservableGroupCollection(m_groupings, this, null, keyComparer);
-            Comparer = valueComparer;
-            CopyFrom(groupings ?? throw new ArgumentNullException(nameof(groupings))); // base(groupings) invokes Comparer, before it is assigned
+            CopyFrom(groupings ?? throw new ArgumentNullException(nameof(groupings)));
         }
-
-        /// <summary>
-        /// Initializes a new instance of <see cref="SortedObservableGroupingCollection{TKey,TValue}"/> from existing groupings, with the specified equality, key and value comparer.
-        /// </summary>
-        /// <param name="groupings">The data source of the collection.</param>
-        /// <param name="keyEqualityComparer">The equality comparer used to get the hashcode of keys, and to determine if two keys are equal.</param>
-        /// <param name="keyComparer">The comparer used to sort keys.</param>
-        /// <param name="valueComparer">The comparer used to sort values.</param>
-        public SortedObservableGroupingCollection(
-            IEnumerable<IGrouping<TKey, TValue>?> groupings,
-            IEqualityComparer<TKey> keyEqualityComparer,
-            IComparer<TKey> keyComparer,
-            IComparer<TValue> valueComparer)
-            : base(keyEqualityComparer)
-        {
-            m_groupings = _groups = new SynchronizedSortedObservableGroupCollection(m_groupings, this, keyEqualityComparer, keyComparer);
-            Comparer = valueComparer;
-            CopyFrom(groupings ?? throw new ArgumentNullException(nameof(groupings))); // base(groupings) invokes Comparer, before it is assigned
-        }
-
+        
 #endregion
 
 #region Properties
 
         /// <summary>
         /// Returns the instance of the comparer used to compare values.
+        /// The default comparer, if none was provided in the constructor.
         /// </summary>
         public IComparer<TValue> Comparer { get; }
 

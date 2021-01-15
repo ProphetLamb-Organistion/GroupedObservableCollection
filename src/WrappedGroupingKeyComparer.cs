@@ -6,7 +6,7 @@ using System.Text;
 namespace GroupedObservableCollection
 {
     internal class WrappedGroupingKeyComparer<TKey, TValue>
-        : IComparer<IObservableGrouping<TKey, TValue>>
+        : IComparer<ISynchronizedObservableGrouping<TKey, TValue>>
         where TKey : notnull
     {
 
@@ -20,7 +20,7 @@ namespace GroupedObservableCollection
         /// </summary>
         public IComparer<TKey> KeyComparer { get; }
 
-        public int Compare(IObservableGrouping<TKey, TValue> x, IObservableGrouping<TKey, TValue> y)
+        public int Compare(ISynchronizedObservableGrouping<TKey, TValue> x, ISynchronizedObservableGrouping<TKey, TValue> y)
         {
             return KeyComparer.Compare(x.Key, y.Key);
         }

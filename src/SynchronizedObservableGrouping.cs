@@ -11,7 +11,7 @@ namespace System.Collections.Specialized
         [DebuggerDisplay("Count = {Count}, Range=[{StartIndexInclusive}..{EndIndexExclusive}), Key = [{Key}]")]
         [Serializable]
         public class SynchronizedObservableGrouping
-            : IObservableGrouping<TKey, TValue>, ICollection
+            : ISynchronizedObservableGrouping<TKey, TValue>, ICollection
         {
             #region Fields
 
@@ -58,9 +58,7 @@ namespace System.Collections.Specialized
             /// <inheritdoc />
             public TKey Key { get; }
 
-            /// <summary>
-            /// Gets or sets the index of the first element of the <see cref="SynchronizedObservableGrouping"/> in the synchronized collection.
-            /// </summary>
+            /// <inheritdoc />
             public int StartIndexInclusive
             {
                 get => _startIndexInclusive;
@@ -75,9 +73,7 @@ namespace System.Collections.Specialized
                 }
             }
             
-            /// <summary>
-            /// Gets or sets the index of the element after the last element of the <see cref="SynchronizedObservableGrouping"/> in the synchronized collection.
-            /// </summary>
+            /// <inheritdoc />
             public int EndIndexExclusive
             {
                 get => _endIndexExclusive;
@@ -90,7 +86,7 @@ namespace System.Collections.Specialized
                 }
             }
 
-            /// <inheritdoc cref="IObservableGrouping{TKey,TValue}.Count" />
+            /// <inheritdoc cref="ISynchronizedObservableGrouping{TKey,TValue}.Count" />
             public int Count => EndIndexExclusive - StartIndexInclusive;
 
             /// <inheritdoc />
@@ -98,10 +94,8 @@ namespace System.Collections.Specialized
 
             /// <inheritdoc />
             public object SyncRoot { get; }
-
-            /// <summary>
-            /// Indicates whether the synchronized collection is sorted. If true, can not Insert or Move.
-            /// </summary>
+            
+            /// <inheritdoc />
             public bool IsSorted
             {
                 get
@@ -233,7 +227,7 @@ namespace System.Collections.Specialized
                 OnPropertyChanged("Item[]");
             }
 
-            /// <inheritdoc cref="ObservableCollection{T}.Move" />
+            /// <inheritdoc />
             public void Move(int oldIndex, int newIndex)
             {
                 if (IsSorted)
@@ -326,17 +320,20 @@ namespace System.Collections.Specialized
                 if (_isVerbose)
                     PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
             }
-            
+
+            /// <summary>Use where (action & Add | Remove) != 0</summary>
             private void OnCollectionChanged(NotifyCollectionChangedAction action, object? item, int index)
             {
                 OnCollectionChanged(new NotifyCollectionChangedEventArgs(action, item, index));
             }
 
+            /// <summary>Use where action == Replace</summary>
             private void OnCollectionChanged(NotifyCollectionChangedAction action, object? oldItem, object? item, int index)
             {
                 OnCollectionChanged(new NotifyCollectionChangedEventArgs(action, oldItem, item, index));
             }
 
+            /// <summary>Use where action == Move</summary>
             private void OnCollectionChanged(NotifyCollectionChangedAction action, object? item, int index, int oldIndex)
             {
                 OnCollectionChanged(new NotifyCollectionChangedEventArgs(action, item, index, oldIndex));

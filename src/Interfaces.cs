@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 
@@ -16,19 +17,41 @@ namespace System.Collections.Specialized
 
     /// <summary>
     /// Represents a dynamic data collection of items with a common key, that provides notifications when items get added, removed, or when the whole list is refreshed. 
+    /// Is synchronized with a range of another collection.
     /// </summary>
     /// <typeparam name="TKey">The type of the common key.</typeparam>
     /// <typeparam name="TValue">The type of elements in the collection.</typeparam>
-    public interface IObservableGrouping<out TKey, TValue>
+    public interface ISynchronizedObservableGrouping<out TKey, TValue>
         : IGrouping<TKey, TValue>, IList<TValue>, INotifyCollectionChanged, INotifyPropertyChanged
         where TKey : notnull
-    {
+    {            
+        /// <summary>
+        /// Gets or sets the index of the first element in the synchronized collection.
+        /// </summary>
+        int StartIndexInclusive { get; }
+
+        /// <summary>
+        /// Gets or sets the index of the element after the last element in the synchronized collection.
+        /// </summary>
+        int EndIndexExclusive { get; }
+
+        /// <summary>
+        /// Indicates whether the collection is sorted. If true, can not Insert or Move
+        /// </summary>
+        bool IsSorted { get; }
+
+        /// <inheritdoc cref="ObservableCollection{T}.Move" />
+        void Move(int oldIndex, int newIndex);
     }
 
     public interface IObservableGroupCollection<TKey, TValue>
-        : IObservableCollection<IObservableGrouping<TKey, TValue>>, IReadOnlyList<IObservableGrouping<TKey, TValue>>, ICollection
+        : IObservableCollection<ISynchronizedObservableGrouping<TKey, TValue>>, IReadOnlyList<ISynchronizedObservableGrouping<TKey, TValue>>, ICollection
         where TKey : notnull
-    {
+    {            
+        /// <summary>
+        /// Indicates whether the collection is sorted. If true, can not Insert or Move
+        /// </summary>
+        bool IsSorted { get; }
     }
 
     /// <summary>
@@ -40,6 +63,16 @@ namespace System.Collections.Specialized
         : IReadOnlyList<TValue>
         where TKey : notnull
     {
+        /// <summary>
+        /// Represents the collection of unique keys of groups.
+        /// </summary>
+        IReadOnlyList<IGrouping<TKey, TValue>> Groupings { get; }
+        
+        /// <summary>
+        /// Indicates whether the collection is sorted. If true, can not Insert or Move
+        /// </summary>
+        bool IsSorted { get; }
+
         /// <summary>
         /// Gets the grouping with the specified <paramref name="key"/>.
         /// </summary>
@@ -88,11 +121,6 @@ namespace System.Collections.Specialized
         /// <exception cref="ArgumentNullException">Thrown when the <paramref name="key"/> is null.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Thrown when a grouping with the same <paramref name="key"/> already exists.</exception>
         IGrouping<TKey, TValue> Create(in TKey key);
-
-        /// <summary>
-        /// Represents the collection of unique keys of groups.
-        /// </summary>
-        IReadOnlyList<IGrouping<TKey, TValue>> Groupings { get; }
     }
 
     /// <summary>
@@ -111,7 +139,7 @@ namespace System.Collections.Specialized
         /// <returns>The grouping with the specified <paramref name="key"/>.</returns>
         /// <exception cref="ArgumentNullException">Thrown when the <paramref name="key"/> is null.</exception>
         /// <exception cref="KeyNotFoundException">Thrown when there is no grouping with the <paramref name="key"/> in the collection.</exception>
-        new IObservableGrouping<TKey, TValue> this[in TKey key] { get; }
+        new ISynchronizedObservableGrouping<TKey, TValue> this[in TKey key] { get; }
 
         /// <summary>
         /// Gets the readonly collection representing the groupings of the <see cref="IObservableGroupingCollection{TKey,TValue}"/>.

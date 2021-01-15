@@ -18,18 +18,17 @@ namespace System.Collections.Specialized
         {
 #region Fields
 
-            private readonly IComparer<SynchronizedObservableGrouping>? _wrappedKeyComparer;
+            private readonly IComparer<ISynchronizedObservableGrouping<TKey, TValue>> _wrappedKeyComparer;
 
 #endregion
 
 #region Constructors
 
             protected internal SynchronizedSortedObservableGroupCollection(
-                IEnumerable<SynchronizedObservableGrouping>? source,
+                IEnumerable<ISynchronizedObservableGrouping<TKey, TValue>>? source,
                 ObservableGroupingCollection<TKey, TValue> valuesCollection,
-                IEqualityComparer<TKey>? keyEqualityComparer,
                 IComparer<TKey> keyComparer)
-                : base(valuesCollection, keyEqualityComparer)
+                : base(valuesCollection)
             {
                 Comparer = keyComparer;
                 _wrappedKeyComparer = new WrappedGroupingKeyComparer<TKey, TValue>(keyComparer);
@@ -44,15 +43,19 @@ namespace System.Collections.Specialized
             /// <inheritdoc />
             public override bool IsSorted => true;
 
+            /// <summary>
+            /// Returns the instance of the comparer used to compare keys.
+            /// The default comparer, if none was provided in the constructor.
+            /// </summary>
             public IComparer<TKey> Comparer { get; }
 
 #endregion
 
 #region Public members
 
-            public void CopyFrom(IEnumerable<SynchronizedObservableGrouping> source)
+            public void CopyFrom(IEnumerable<ISynchronizedObservableGrouping<TKey, TValue>> source)
             {
-                foreach (SynchronizedObservableGrouping grouping in source)
+                foreach (ISynchronizedObservableGrouping<TKey, TValue> grouping in source)
                 {
                     InsertItem(Count, grouping);
                 }
@@ -62,25 +65,26 @@ namespace System.Collections.Specialized
 
 #region Private members
 
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             private void ThrowOnIllegalBaseCall([CallerMemberName] string? callingFunction = null)
             {
                 throw new NotSupportedException("The operation \"" + callingFunction + "\" is not supported in SynchronizedSortedObservableGroupCollection.");
             }
 
+            private SynchronizedObservableGrouping GetItem(int index) => (SynchronizedObservableGrouping)Items[index];
+
 #endregion
 
 #region Overrides
 
-            protected override void InsertItem(int index, SynchronizedObservableGrouping item)
+            protected override void InsertItem(int index, ISynchronizedObservableGrouping<TKey, TValue> item)
             {
                 // Add calls with index = Items.Count, otherwise insertion
                 if (index != Items.Count)
                     ThrowOnIllegalBaseCall();
                 if (item.Count != 0)
                     throw new ArgumentException("Cannot add a grouping that already contains items.");
-                int insertionIndex = ~CollectionSortHelper<SynchronizedObservableGrouping>.BinarySearch(this, 0, Count, item, _wrappedKeyComparer);
-                // Inverts the result, if the search yielded no result
+                int insertionIndex = ~CollectionSortHelper<ISynchronizedObservableGrouping<TKey, TValue>>.BinarySearch(this, 0, Count, item, _wrappedKeyComparer);
+                // Inverts the result, if the search yielded no result -> if we have a result, the key already exists.
                 if (insertionIndex < 0)
                     throw new ArgumentException("Key already exists in collection.");
                 
@@ -93,24 +97,26 @@ namespace System.Collections.Specialized
                 base.MoveItem(oldIndex, newIndex);
             }
 
-            protected override void SetItem(int index, SynchronizedObservableGrouping item)
+            protected override void SetItem(int index, ISynchronizedObservableGrouping<TKey, TValue>  item)
             {
-                SynchronizedObservableGrouping oldItem = this[index];
+                if (!(item is SynchronizedObservableGrouping newItem))
+                    throw new ArgumentException("The type of the item must derive from SynchronizedObservableGrouping.");
+                SynchronizedObservableGrouping oldItem = GetItem(index);
                 int offset = item.Count - oldItem.Count;
 
-                item.EndIndexExclusive = index + item.Count;
-                item.StartIndexInclusive = index;
+                newItem.EndIndexExclusive = index + item.Count;
+                newItem.StartIndexInclusive = index;
                 lock (m_valuesCollection)
-                    m_valuesCollection.Groupings.OffsetAfterGroup(item, offset);
+                    m_valuesCollection.Groupings.OffsetAfterGroup(newItem, offset);
 
                 m_keyDictionary.Remove(oldItem.Key);
-                m_keyDictionary.Add(item.Key, item);
+                m_keyDictionary.Add(item.Key, newItem);
                 base.SetItem(index, item);
             }
 
             protected override void RemoveItem(int index)
             {
-                SynchronizedObservableGrouping item = this[index];
+                SynchronizedObservableGrouping item = GetItem(index);
                 lock (m_valuesCollection)
                 {
                     m_valuesCollection.Groupings.OffsetAfterGroup(item, item.Count);
