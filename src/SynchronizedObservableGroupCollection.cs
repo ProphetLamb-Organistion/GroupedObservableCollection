@@ -163,16 +163,16 @@ namespace System.Collections.Specialized
                     loIndex = Math.Min(newIndex, oldIndex),
                     hiIndex = Math.Max(newIndex, oldIndex);
                 SynchronizedObservableGrouping previousItem;
-                if (loIndex == 0)
+                if (loIndex != 0)
+                {
+                    previousItem = GetItem(loIndex - 1);
+                }
+                else
                 {
                     previousItem = GetItem(loIndex++);
                     int count = previousItem.Count;
                     previousItem.EndIndexExclusive = count;
                     previousItem.StartIndexInclusive = 0;
-                }
-                else
-                {
-                    previousItem = GetItem(loIndex - 1);
                 }
 
                 for (int i = loIndex; i <= hiIndex; i++)
