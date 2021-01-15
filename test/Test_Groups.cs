@@ -77,9 +77,58 @@ namespace GroupedObservableCollection.Test
             Assert.AreEqual(Resources.Instance.SampleCount, removedAccumulator + col.Count);
             Assert.Pass();
         }
-
+        
         [Test]
         public void Test_Move()
+        {
+            var col = new ObservableGroupingCollection<KeyStru, ValueClass>(Resources.Instance.EnumerateSampleDataGrouped());
+            IList<int> keyIndicies = col.Groupings.AsEnumerable.Select(x => x.Key.KeyIndex).ToList();
+            IList<int> keyIndiciesClone = col.Groupings.AsEnumerable.Select(x => x.Key.KeyIndex).ToList();
+
+            for (var i = 0; i < col.Groupings.Count; i++)
+            {
+                var grouping = col.Groupings[i];
+                int keyIndex = grouping.Key.KeyIndex;
+                Assert.AreEqual(keyIndicies[i], grouping.Key.KeyIndex);
+                foreach (var item in grouping.AsEnumerable())
+                {
+                    Assert.AreEqual(keyIndex, item.KeyIndex);
+                }
+            }
+
+            col.Groupings.Move(2,5);
+            keyIndicies.Move(2, 5);
+
+            for (var i = 0; i < col.Groupings.Count; i++)
+            {
+                var grouping = col.Groupings[i];
+                int keyIndex = grouping.Key.KeyIndex;
+                Assert.AreEqual(keyIndicies[i], grouping.Key.KeyIndex);
+                foreach (var item in grouping.AsEnumerable())
+                {
+                    Assert.AreEqual(keyIndex, item.KeyIndex);
+                }
+            }
+
+            col.Groupings.Move(5,2);
+            keyIndicies.Move(5, 2);
+
+            for (var i = 0; i < col.Groupings.Count; i++)
+            {
+                var grouping = col.Groupings[i];
+                int keyIndex = grouping.Key.KeyIndex;
+                Assert.AreEqual(keyIndiciesClone[i], grouping.Key.KeyIndex);
+                foreach (var item in grouping.AsEnumerable())
+                {
+                    Assert.AreEqual(keyIndex, item.KeyIndex);
+                }
+            }
+
+            Assert.Pass();
+        }
+
+        [Test]
+        public void Test_Move2()
         {
             var col = new ObservableGroupingCollection<KeyStru, ValueClass>(Resources.Instance.EnumerateSampleDataGrouped());
             for (int i = 0; i < col.Groupings.Count; i++)
