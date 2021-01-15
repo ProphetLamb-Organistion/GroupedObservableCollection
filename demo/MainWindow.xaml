@@ -7,19 +7,19 @@
         xmlns:local="clr-namespace:GroupedObservableCollection.Demo"
         xmlns:viewModels="clr-namespace:GroupedObservableCollection.Demo.ViewModels"
         xmlns:valueConverters="clr-namespace:GroupedObservableCollection.Demo.ValueConverters"
+        xmlns:DataModels="clr-namespace:GroupedObservableCollection.Demo.DataModels"
         mc:Ignorable="d"
         DataContext="{DynamicResource Model}"
         Loaded="MainWindow_OnLoaded"
         Title="MainWindow" Height="450" Width="800">
     <Window.Resources>
         <viewModels:MainWindowViewModel x:Key="Model"/>
-        <valueConverters:CountToMaximumIndexConverter x:Key="CountToMaximumIndexConverter"/>
     </Window.Resources>
     <Grid>
         <ListView x:Name="GroupedItemsListView"
                   Grid.Row="0"
                   Grid.Column="0"
-                  ItemsSource="{Binding Persons}">
+                  ItemsSource="{Binding Persons, Mode=OneWay}">
             <ListView.View>
                 <GridView AllowsColumnReorder="True">
                     <GridViewColumn DisplayMemberBinding="{Binding Type}" Header="Type"/>
@@ -49,7 +49,10 @@
             <Grid>
                 <Label Content="Type"
                        Grid.Row="0"/>
-                <ComboBox SelectedItem="{Binding NewPersonType}"
+                <ComboBox ItemsSource="{valueConverters:EnumToItemsSource {x:Type DataModels:PersonType}}"
+                          SelectedValue="{Binding Path=NewPersonType}"
+                          SelectedValuePath="Value"
+                          DisplayMemberPath="DisplayName"
                           Grid.Row="0"
                           Grid.Column="1"/>
                 <Label Content="Prename"
@@ -62,10 +65,21 @@
                 <TextBox Text="{Binding NewPersonSurname}"
                          Grid.Row="2"
                          Grid.Column="1"/>
+                <Label Content="Date of birth"
+                       Grid.Row="3"/>
+                <xctk:DateTimePicker Value="{Binding NewPersonDateOfBirth}"
+                                     Grid.Column="1"
+                                     Grid.Row="3"/>
+                <Button Content="Add new Person"
+                        Grid.Row="4"
+                        Grid.Column="1"
+                        Click="AddItem_Click"/>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="25"/>
                     <RowDefinition Height="25"/>
                     <RowDefinition Height="25"/>
+                    <RowDefinition Height="25"/>
+                    <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="100"/>
@@ -76,14 +90,25 @@
         <GroupBox Header="Groups"
                   Grid.Row="1"
                   Grid.Column="1">
-            <WrapPanel>
+            <Grid>
+                <Label Content="Move selected"/>
                 <xctk:IntegerUpDown Value="{Binding SelectedGroupIndex}"
                                     Minimum="0"
-                                    Maximum="{Binding Groupings.Count, Mode=OneWay, Converter={StaticResource CountToMaximumIndexConverter}}"/>
-                <Button Content="-" 
-                        Width="{Binding RelativeSource={x:Static RelativeSource.Self}, Path=ActualHeight}"
-                        Click="RemoveGroup_Click"/>
-            </WrapPanel>
+                                    Maximum="{Binding Groupings.Count, Mode=OneWay, Converter={valueConverters:CountToMaximumIndexConverter}}"
+                                    Grid.Column="1"/>
+                <Button Content="Remove selected Group"
+                        Click="RemoveGroup_Click"
+                        Grid.Column="1"
+                        Grid.Row="1"/>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="25"/>
+                    <RowDefinition Height="25"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="100"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+            </Grid>
         </GroupBox>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>

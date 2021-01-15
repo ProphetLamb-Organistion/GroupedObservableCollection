@@ -14,6 +14,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
+using GroupedObservableCollection.Demo.DataModels;
 using GroupedObservableCollection.Demo.ViewModels;
 
 namespace GroupedObservableCollection.Demo
@@ -37,8 +38,23 @@ namespace GroupedObservableCollection.Demo
 
         private void RemoveGroup_Click(object sender, RoutedEventArgs e)
         {
-            if (!(_model.SelectedGroupIndex is null))
+            if (_model.SelectedGroupIndex is null)
+                return;
+            lock (_model.PersonsLock)
                 _model.Groupings.RemoveAt(_model.SelectedGroupIndex.Value);
+        }
+
+        private void AddItem_Click(object sender, RoutedEventArgs e)
+        {
+            var p = new Person
+            {
+                Prename = _model.NewPersonPrename,
+                Surname = _model.NewPersonSurname,
+                DateOfBirth = new DateTimeOffset(_model.NewPersonDateOfBirth ?? DateTime.MinValue, DateTimeOffset.Now.Offset),
+                Type = _model.NewPersonType
+            };
+            lock (_model.PersonsLock)
+                _model.PersonsGroupingCollection.Add(p.Type, p);
         }
     }
 }

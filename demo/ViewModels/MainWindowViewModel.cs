@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -27,8 +28,9 @@ namespace GroupedObservableCollection.Demo.ViewModels
         {
             Task.Run(delegate
             {
-                foreach (var grouping in PersonSource.Instance.EnumerateSampleDataGrouped())
+                foreach (var grouping in PersonSource.Instance.SampleData.GroupBy(x => x.Value.Type, x => x.Value))
                 {
+                    Debug.Assert(grouping.Count(x => x.Type != grouping.Key) == 0, "grouping.Count(x => x.Type != grouping.Key) == 0");
                     dispatch(() =>
                     {
                         lock (PersonsLock)
@@ -44,26 +46,32 @@ namespace GroupedObservableCollection.Demo.ViewModels
         public ObservableCollection<Person> Persons => PersonsGroupingCollection;
         public ObservableCollection<ISynchronizedObservableGrouping<PersonType, Person>> Groupings => PersonsGroupingCollection.Groupings;
 
-        private PersonType _newPersonType;
+        private PersonType _newPersonType = PersonType.Unknown;
         public PersonType NewPersonType
         {
             get => _newPersonType;
             set => Set(ref _newPersonType, value);
         }
 
-        private string _newPersonPrename;
-
+        private string _newPersonPrename = String.Empty;
         public string NewPersonPrename
         {
             get => _newPersonPrename;
             set => Set(ref _newPersonPrename, value);
         }
-        private string _newPersonSurname;
 
+        private string _newPersonSurname = String.Empty;
         public string NewPersonSurname
         {
             get => _newPersonSurname;
             set => Set(ref _newPersonSurname, value);
+        }
+
+        private DateTime? _newPersonDateOfBirth = DateTime.Now.AddYears(-40);
+        public DateTime? NewPersonDateOfBirth
+        {
+            get => _newPersonDateOfBirth;
+            set => Set(ref _newPersonDateOfBirth, value);
         }
 
         private ISynchronizedObservableGrouping<PersonType, Person>? _selectedGroup;
