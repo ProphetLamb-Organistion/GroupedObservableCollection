@@ -32,7 +32,7 @@ namespace GroupedObservableCollection.Demo
 
         private void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
         {
-            _model.BeginLoadingSampleData();
+            _model.BeginLoadingSampleData(Dispatcher.InvokeAsync);
         }
     }
 }

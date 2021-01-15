@@ -42,7 +42,7 @@ namespace GroupedObservableCollection.Demo.Data
         /// Returns an instance of Random which can be used freely
         /// within the current thread.
         /// </summary>
-        public static Random Instance => s_threadRandom.Value;
+        public static Random Instance => s_threadRandom.Value!;
 
         /// <summary>See <see cref="Random.Next()" /></summary>
         public static int Next()

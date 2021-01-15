@@ -16,21 +16,21 @@
         <ListView x:Name="GroupedItemsListView"
                   Grid.Row="0"
                   Grid.Column="0"
-                  ItemsSource="{Binding Source=Model, Path=Persons}">
+                  ItemsSource="{Binding Persons}">
             <ListView.View>
                 <GridView AllowsColumnReorder="True">
-                    <GridViewColumn DisplayMemberBinding="{Binding Path=Type}" Header="Type"/>
-                    <GridViewColumn DisplayMemberBinding="{Binding Path=Prename}" Header="Prename"/>
-                    <GridViewColumn DisplayMemberBinding="{Binding Path=Surname}" Header="Surname"/>
-                    <GridViewColumn DisplayMemberBinding="{Binding Path=DateOfBirth}" Header="Date of birth"/>
+                    <GridViewColumn DisplayMemberBinding="{Binding Type}" Header="Type"/>
+                    <GridViewColumn DisplayMemberBinding="{Binding Prename}" Header="Prename"/>
+                    <GridViewColumn DisplayMemberBinding="{Binding Surname}" Header="Surname"/>
+                    <GridViewColumn DisplayMemberBinding="{Binding DateOfBirth}" Header="Date of birth"/>
                 </GridView>
             </ListView.View>
         </ListView>
         <ListView x:Name="GroupsListView"
                   Grid.Row="0"
                   Grid.Column="1"
-                  ItemsSource="{Binding Source=Model, Path=Persons.Groupings}">
-
+                  ItemsSource="{Binding Groupings}">
+            
         </ListView>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>

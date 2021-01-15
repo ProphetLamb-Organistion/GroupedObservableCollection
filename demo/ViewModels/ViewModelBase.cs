@@ -14,7 +14,7 @@ namespace GroupedObservableCollection.Demo.ViewModels
         {
             if (EqualityComparer<T>.Default.Equals(field, newValue))
                 return false;
-            field = newValue;
+            field = newValue!;
             OnPropertyChanged(propertyName);
             return true;
         }
