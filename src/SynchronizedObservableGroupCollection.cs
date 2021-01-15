@@ -129,6 +129,8 @@ namespace System.Collections.Specialized
                     array[index++] = this[i];
             }
 
+            /// <summary>Returns this instance of <see cref="SynchronizedObservableGroupCollection"/> cast to an Enumerable type.</summary>
+            /// <remarks>Cannot use the <see cref="SynchronizedObservableGroupCollection"/> directly (in a e.g. foreach loop or LINQ expression), because the class implements multiple IEnumerable interfaces, therefore the cast is ambiguous.</remarks>
             public IEnumerable<SynchronizedObservableGrouping> AsEnumerable => this;
             
             IEnumerator<IObservableGrouping<TKey, TValue>> IEnumerable<IObservableGrouping<TKey, TValue>>.GetEnumerator() => GetEnumerator();
