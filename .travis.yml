@@ -5,11 +5,11 @@ dotnet: 3.1.404
 install:
   - cd src
   - dotnet restore
-  - cd test
+  - cd ../test
   - dotnet restore
 script:
   - cd src
   - dotnet build
-  - cd test
+  - cd ../test
   - dotnet build
   - dotnet test
