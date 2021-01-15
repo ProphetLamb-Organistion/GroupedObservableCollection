@@ -31,7 +31,7 @@ namespace System.Collections.Specialized
                 : base(valuesCollection, keyEqualityComparer)
             {
                 Comparer = keyComparer;
-                _wrappedKeyComparer = Comparer<SynchronizedObservableGrouping>.Create((x, y) => keyComparer.Compare(x.Key, y.Key));
+                _wrappedKeyComparer = new WrappedGroupingKeyComparer<TKey, TValue>(keyComparer);
                 if (source != null)
                     CopyFrom(source);
             }
