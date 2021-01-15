@@ -325,10 +325,24 @@ namespace System.Collections.Specialized
              * We reuse the same Array, so that no additional arrays are needlessly allocated.
              */
             object?[] dummy = new object?[1];
-            for(int i = 0; i < changedItems.Count; i++)
+            switch (action)
             {
-                dummy[0] = changedItems[i];
-                OnCollectionChanged(new NotifyCollectionChangedEventArgs(action, dummy, startIndex + i));
+                case NotifyCollectionChangedAction.Add:
+                    for(int i = 0; i < changedItems.Count; i++)
+                    {
+                        dummy[0] = changedItems[i];
+                        OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, dummy, startIndex + i));
+                    }
+                    break;
+                case NotifyCollectionChangedAction.Remove:
+                    for(int i = changedItems.Count - 1; i >= 0; i--)
+                    {
+                        dummy[0] = changedItems[i];
+                        OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, dummy, startIndex + i));
+                    }
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(action));
             }
 #endif
         }
@@ -339,11 +353,13 @@ namespace System.Collections.Specialized
 #if COLLECTIONVIEW_EVENT_MULTICHANGE_SUPPORT
             OnCollectionChanged(new NotifyCollectionChangedEventArgs(action, notifyBuffer, newIndex, oldIndex));
 #else
+            if (action != NotifyCollectionChangedAction.Move)
+                throw new ArgumentOutOfRangeException(nameof(action));
             object?[] dummy = new object?[1];
             for(int i = 0; i < changedItems.Count; i++)
             {
                 dummy[0] = changedItems[i];
-                OnCollectionChanged(new NotifyCollectionChangedEventArgs(action, dummy, newIndex + i, oldIndex + 1));
+                OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Move, dummy, newIndex + i, oldIndex + i));
             }
 #endif
         }
