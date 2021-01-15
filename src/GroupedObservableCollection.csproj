@@ -10,8 +10,42 @@
     <Copyright>Copyright ProphetLamb 2021</Copyright>
     <PackageLicenseFile>LICENCE</PackageLicenseFile>
     <Authors>ProphetLamb</Authors>
+    <Title>GroupedObservableCollection</Title>
     <Description>Implementation of `ObservableCollection&lt;TValue&gt;`  that associates items with ´IGrouping&lt;TKey, TValue&gt;`s so that the `GroupedObservableCollection&lt;TKey, TValue&gt;` can be used in WPF Binding operations while synchronizing each group from a different datasource.</Description>
+    <Summary>Allows visualizing and modifying of groupings in WPF ViewModels.</Summary>
     <Configurations>Debug;Release;Test</Configurations>
+    <PackageProjectUrl>https://github.com/ProphetLamb-Organistion/GroupedObservableCollection</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/ProphetLamb-Organistion/GroupedObservableCollection</RepositoryUrl>
+    <PackageReleaseNotes>Release notes
+
+-- 1.0-alpha
+Initial release of the library: Basic functionality established.
+# Todos
+## Done
+* Data seems overall consistent (i.e. objects don't go missing).
+* Events function mostly according to spec. Some duplicate event invokating happens.
+* Unit tests run without error.
+* The Demo is working.
+## Work in progress
+* More than 50% test coverage
+* Better representation of actual usecases in tests
+* Fixing all the bugs that I'll discover when writing tests.
+* Performance tests and optimizations.Release notes
+
+-- 1.0-alpha
+Initial release of the library: Basic functionality established.
+# Todos
+## Done
+* Data seems overall consistent (i.e. objects don't go missing).
+* Events function mostly according to spec. Some duplicate event invokating happens.
+* Unit tests run without error.
+* The Demo is working.
+## Work in progress
+* More than 50% test coverage
+* Better representation of actual usecases in tests
+* Fixing all the bugs that I'll discover when writing tests.
+* Performance tests and optimizations.</PackageReleaseNotes>
+    <PackageTags>csharp, wpf, collections, net-standard</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
