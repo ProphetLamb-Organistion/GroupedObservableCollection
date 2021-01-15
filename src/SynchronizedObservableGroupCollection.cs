@@ -182,45 +182,28 @@ namespace System.Collections.Specialized
                 if (oldIndex == newIndex)
                     return;
 
-                SynchronizedObservableGrouping movedItem = this[oldIndex];
+                SynchronizedObservableGrouping movedItem = Items[oldIndex];
 
                 base.MoveItem(oldIndex, newIndex);
 
-                int movedItemIndex = IndexOf(movedItem),
-                    movedItemCount = movedItem.Count,
-                    movedItemOldStartIndex = movedItem.StartIndexInclusive;
-                
-                if (newIndex < oldIndex)
+                int movedItemOldStartIndex = movedItem.StartIndexInclusive,
+                    loIndex = Math.Min(newIndex, oldIndex),
+                    hiIndex = Math.Max(newIndex, oldIndex);
+                SynchronizedObservableGrouping? previousItem = loIndex < 1 ? null : Items[loIndex - 1];
+                if (previousItem is null)
                 {
-                    for (int i = movedItemIndex + 1; i <= oldIndex; i++)
-                    {
-                        Items[i].EndIndexExclusive += movedItemCount;
-                        Items[i].StartIndexInclusive += movedItemCount;
-                    }
-
-                    movedItem.StartIndexInclusive = movedItemIndex == 0
-                        ? 0
-                        : Items[movedItemIndex - 1].EndIndexExclusive;
-                    movedItem.EndIndexExclusive = movedItem.StartIndexInclusive + movedItemCount;
+                    previousItem = Items[loIndex++];
+                    int count = previousItem.Count;
+                    previousItem.EndIndexExclusive = count;
+                    previousItem.StartIndexInclusive = 0;
                 }
-                else
+                for (int i = loIndex; i <= hiIndex; i++)
                 {
-                    for (int i = oldIndex; i < movedItemIndex; i++)
-                    {
-                        Items[i].StartIndexInclusive -= movedItemCount;
-                        Items[i].EndIndexExclusive -= movedItemCount;
-                    }
-
-                    if (movedItemIndex == Count - 1)
-                    {
-                        lock (m_valuesCollection)
-                            movedItem.EndIndexExclusive = m_valuesCollection.Count;
-                    }
-                    else
-                    {
-                        movedItem.EndIndexExclusive = Items[movedItemIndex + 1].StartIndexInclusive;
-                    }
-                    movedItem.StartIndexInclusive = movedItem.EndIndexExclusive - movedItemCount;
+                    SynchronizedObservableGrouping item = Items[i];
+                    int count = item.Count;
+                    item.EndIndexExclusive = previousItem.EndIndexExclusive + count;
+                    item.StartIndexInclusive = previousItem.EndIndexExclusive;
+                    previousItem = item;
                 }
 
                 lock (m_valuesCollection)
