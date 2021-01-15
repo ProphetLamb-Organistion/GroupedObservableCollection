@@ -12,7 +12,7 @@ namespace System.Collections.Specialized
         /// <summary>
         /// Represents a class managing the groupings in a <see cref="ObservableGroupingCollection{TKey,TValue}"/>.
         /// </summary>
-        [DebuggerDisplay("Count = {Count}")]
+        [DebuggerDisplay("Count = {" + nameof(Count) + "}")]
         public class SynchronizedSortedObservableGroupCollection
             : SynchronizedObservableGroupCollection
         {

@@ -12,8 +12,7 @@ namespace System.Collections.Specialized
     /// <typeparam name="T">The type of elements in the collection.</typeparam>
     public interface IObservableCollection<T>
         : ICollection<T>, INotifyCollectionChanged, INotifyPropertyChanged
-    {
-    }
+    { }
 
     /// <summary>
     /// Represents a dynamic data collection of items with a common key, that provides notifications when items get added, removed, or when the whole list is refreshed. 

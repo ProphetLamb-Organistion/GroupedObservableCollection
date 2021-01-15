@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -7,13 +8,17 @@ using System.Runtime.CompilerServices;
 namespace System.Collections.Specialized
 {
     /// <inheritdoc cref="IObservableGroupingCollection{TKey,TValue}" />
-    [DebuggerDisplay("Groups = {m_groupings.Count}, Items = {Count}")]
+    [DebuggerDisplay("Groups = {" + GroupingsCountPropertyName + "}, Items = {" + CountPropertyName + "}")]
     [Serializable]
     public partial class ObservableGroupingCollection<TKey, TValue>
         : ObservableCollection<TValue>, IObservableGroupingCollection<TKey, TValue>
         where TKey : notnull
     {
 #region Fields
+
+        internal const string GroupingsCountPropertyName = "m_groupings.Count";
+        internal const string CountPropertyName = "Count";
+        internal const string IndexerPropertyName = "Item[]";
 
         protected SynchronizedObservableGroupCollection m_groupings;
 
@@ -57,6 +62,7 @@ namespace System.Collections.Specialized
         /// <returns>The grouping with the specified <paramref name="key"/>.</returns>
         /// <exception cref="ArgumentNullException">Thrown when the <paramref name="key"/> is null.</exception>
         /// <exception cref="KeyNotFoundException">Thrown when there is no grouping with the <paramref name="key"/> in the collection.</exception>
+        [IndexerName("Item")] // Equal to ObservableCollection.this[] IndexerName attribute.
         public SynchronizedObservableGrouping this[in TKey key] => m_groupings[key];
 
 
@@ -175,6 +181,8 @@ namespace System.Collections.Specialized
             m_groupings.OffsetAfterGroup(grouping, items.Count);
 
             OnCollectionChanged(NotifyCollectionChangedAction.Add, items, insertionIndex - Items.Count);
+            OnPropertyChanged(CountPropertyName);
+            OnPropertyChanged(IndexerPropertyName);
         }
 
 
@@ -206,6 +214,8 @@ namespace System.Collections.Specialized
             TValue[] notifyBuffer = new TValue[count];
             InternalRemoveRange(startIndex, count, notifyBuffer);
             OnCollectionChanged(NotifyCollectionChangedAction.Remove, notifyBuffer, startIndex);
+            OnPropertyChanged(CountPropertyName);
+            OnPropertyChanged(IndexerPropertyName);
         }
 
         /// <summary>
@@ -222,6 +232,8 @@ namespace System.Collections.Specialized
             InternalInsertRange(startIndex, items);
 
             OnCollectionChanged(NotifyCollectionChangedAction.Add, items, startIndex);
+            OnPropertyChanged(CountPropertyName);
+            OnPropertyChanged(IndexerPropertyName);
         }
 
         /// <summary>
@@ -239,6 +251,7 @@ namespace System.Collections.Specialized
             InternalInsertRange(newIndex, movedItems);
 
             OnCollectionChanged(NotifyCollectionChangedAction.Move, movedItems, newIndex, oldIndex);
+            OnPropertyChanged(IndexerPropertyName);
         }
 
         protected void ThrowOnIllegalBaseCall([CallerMemberName] string? callingFunction = null)
@@ -272,6 +285,11 @@ namespace System.Collections.Specialized
             {
                 Items.Insert(index, items[i]);
             }
+        }
+
+        public void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+        {
+            OnPropertyChanged(new PropertyChangedEventArgs(propertyName));
         }
 
         /*

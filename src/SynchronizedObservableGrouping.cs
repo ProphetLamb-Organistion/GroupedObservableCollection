@@ -8,12 +8,18 @@ namespace System.Collections.Specialized
 {
     public partial class ObservableGroupingCollection<TKey, TValue>
     {
-        [DebuggerDisplay("Count = {Count}, Range=[{StartIndexInclusive}..{EndIndexExclusive}), Key = [{Key}]")]
+        [DebuggerDisplay("Count = {" + CountPropertyName + "}, Range=[{" + StartIndexPropertyName + "}..{" + EndIndexPropertyName + "}), Key = [{" + KeyPropertyName + "}]")]
         [Serializable]
         public class SynchronizedObservableGrouping
             : ISynchronizedObservableGrouping<TKey, TValue>, ICollection
         {
             #region Fields
+
+            internal const string CountPropertyName = "Count";
+            internal const string IndexerPropertyName = "Item[]";
+            internal const string StartIndexPropertyName = "StartIndexInclusive";
+            internal const string EndIndexPropertyName = "EndIndexExclusive";
+            internal const string KeyPropertyName = "Key";
 
             protected readonly ObservableGroupingCollection<TKey, TValue> m_collection;
             private int _startIndexInclusive;
@@ -48,7 +54,7 @@ namespace System.Collections.Specialized
                 _startIndexInclusive = startIndexInclusive;
                 _endIndexExclusive = endIndexExclusive;
                 SyncRoot = m_collection = collection ?? throw new ArgumentNullException(nameof(collection));
-                m_collection.CollectionChanged += CollectionChangedEventSubscriber;
+                m_collection.CollectionChanged += ProcessCollectionChanged;
             }
 
             #endregion
@@ -64,12 +70,17 @@ namespace System.Collections.Specialized
                 get => _startIndexInclusive;
                 internal set
                 {
+                    if (value == _startIndexInclusive)
+                        return;
                     if (EndIndexExclusive < value)
                         throw new ArgumentOutOfRangeException(nameof(value), "EndIndexExclusive must be greater or equal to StartIndexInclusive");
                     if ((uint) value > (uint) CollectionCount + 1)
                         throw new IndexOutOfRangeException();
                     _startIndexInclusive = value;
+
                     OnPropertyChanged();
+                    OnPropertyChanged(CountPropertyName);
+                    OnPropertyChanged(IndexerPropertyName);
                 }
             }
             
@@ -79,10 +90,15 @@ namespace System.Collections.Specialized
                 get => _endIndexExclusive;
                 internal set
                 {
+                    if (value == _endIndexExclusive)
+                        return;
                     if ((uint) value > (uint) CollectionCount + 1)
                         throw new IndexOutOfRangeException();
                     _endIndexExclusive = value;
+                    
                     OnPropertyChanged();
+                    OnPropertyChanged(CountPropertyName);
+                    OnPropertyChanged(IndexerPropertyName);
                 }
             }
 
@@ -109,6 +125,7 @@ namespace System.Collections.Specialized
             bool ICollection<TValue>.IsReadOnly => false;
             
             /// <inheritdoc />
+            [IndexerName ("Item")]
             public TValue this[int index]
             {
                 get
@@ -145,9 +162,9 @@ namespace System.Collections.Specialized
             {
                 lock (m_collection)
                     m_collection.GroupAdd(this, item);
-
-                OnPropertyChanged("Count");
-                OnPropertyChanged("Item[]");
+                
+                OnPropertyChanged(CountPropertyName);
+                OnPropertyChanged(IndexerPropertyName);
             }
             
             /// <inheritdoc />
@@ -160,9 +177,10 @@ namespace System.Collections.Specialized
                 
                 lock (m_collection)
                     m_collection.GroupAdd(this, item, index);
-
-                OnPropertyChanged("Count");
-                OnPropertyChanged("Item[]");
+                
+                OnPropertyChanged(EndIndexPropertyName);
+                OnPropertyChanged(CountPropertyName);
+                OnPropertyChanged(IndexerPropertyName);
             }
             
             /// <inheritdoc />
@@ -174,11 +192,14 @@ namespace System.Collections.Specialized
                     m_collection.RemoveRange(StartIndexInclusive, Count);
                     m_collection.Groupings.OffsetAfterGroup(this, -Count);
                 }
-                _isVerbose = true;
 
                 EndIndexExclusive = StartIndexInclusive;
-                OnPropertyChanged("Count");
-                OnPropertyChanged("Item[]");
+                _isVerbose = true;
+                
+                OnPropertyChanged(EndIndexPropertyName);
+                OnPropertyChanged(StartIndexPropertyName);
+                OnPropertyChanged(CountPropertyName);
+                OnPropertyChanged(IndexerPropertyName);
                 OnCollectionReset();
             }
             
@@ -222,9 +243,7 @@ namespace System.Collections.Specialized
                     m_collection.BaseCallCheckout();
                     m_collection.Groupings.OffsetAfterGroup(this, -1);
                 }
-                EndIndexExclusive--;
-                OnPropertyChanged("Count");
-                OnPropertyChanged("Item[]");
+                EndIndexExclusive--; // Invokes PropertyChanged events
             }
 
             /// <inheritdoc />
@@ -244,7 +263,7 @@ namespace System.Collections.Specialized
                     m_collection.MoveItem(StartIndexInclusive + oldIndex, StartIndexInclusive + newIndex);
                     m_collection.BaseCallCheckout();
                 }
-                OnPropertyChanged("Item[]");
+                OnPropertyChanged(IndexerPropertyName);
             }
 
             /// <inheritdoc />
@@ -312,7 +331,7 @@ namespace System.Collections.Specialized
                     m_collection[index + StartIndexInclusive] = item;
                     m_collection.BaseCallCheckout();
                 }
-                OnPropertyChanged("Item[]");
+                OnPropertyChanged(IndexerPropertyName);
             }
 
             public void OnPropertyChanged([CallerMemberName] string? propertyName = null)
@@ -350,8 +369,18 @@ namespace System.Collections.Specialized
                     CollectionChanged?.Invoke( this, e);
             }
 
-            private void CollectionChangedEventSubscriber(object sender, NotifyCollectionChangedEventArgs e)
+            protected virtual void ProcessCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
             {
+                /*
+                 * Steps for ProcessCollectionChanged:
+                 *
+                 * 1) Validate that the values in the args are acceptable.
+                 * 2) Translate the indices if necessary.
+                 * 3) Raise CollectionChanged.
+                 * 4) Raise any PropertyChanged events that apply.
+                 *
+                 */
+
                 if (!_isVerbose)
                     return;
                 if (CollectionChanged is null)
@@ -365,39 +394,50 @@ namespace System.Collections.Specialized
                         index = e.NewStartingIndex;
                         IEnumerable? newEnumerable;
                         if ((newEnumerable = EnumerateAffectingCollectionChanges(index, e.NewItems)) is null)
-                            return;
+                            break;
                         foreach (object obj in newEnumerable)
                             OnCollectionChanged(NotifyCollectionChangedAction.Add, obj, index++);
+                        OnPropertyChanged(EndIndexPropertyName);
+                        OnPropertyChanged(IndexerPropertyName);
+                        OnPropertyChanged(CountPropertyName);
                         break;
                     case NotifyCollectionChangedAction.Remove:
                         index = e.OldStartingIndex;
                         IEnumerable? oldEnumerable;
                         if ((oldEnumerable = EnumerateAffectingCollectionChanges(index, e.OldItems)) is null)
-                            return;
+                            break;
                         foreach (object obj in oldEnumerable)
                             OnCollectionChanged(NotifyCollectionChangedAction.Remove, obj, index++);
+                        OnPropertyChanged(EndIndexPropertyName);
+                        OnPropertyChanged(IndexerPropertyName);
+                        OnPropertyChanged(CountPropertyName);
                         break;
                     case NotifyCollectionChangedAction.Replace:
                         index = e.OldStartingIndex;
                         if (EnumerateAffectingCollectionChanges(index, e.OldItems) is null 
                          || EnumerateAffectingCollectionChanges(index, e.NewItems) is null)
-                            return;
+                            break;
                         OnCollectionChanged(NotifyCollectionChangedAction.Replace, e.OldItems[0], e.NewItems[0], e.NewStartingIndex);
+                        OnPropertyChanged(IndexerPropertyName);
                         break;
                     case NotifyCollectionChangedAction.Move:
                         index = e.OldStartingIndex;
                         if (EnumerateAffectingCollectionChanges(index, e.OldItems) is null)
-                            return;
+                            break;
                         OnCollectionChanged(NotifyCollectionChangedAction.Move, e.OldItems, e.NewStartingIndex, e.OldStartingIndex);
+                        OnPropertyChanged(IndexerPropertyName);
                         break;
                     case NotifyCollectionChangedAction.Reset:
                         OnCollectionReset();
+                        OnPropertyChanged(EndIndexPropertyName);
+                        OnPropertyChanged(IndexerPropertyName);
+                        OnPropertyChanged(CountPropertyName);
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
             }
-
+            
             private IEnumerable? EnumerateAffectingCollectionChanges(int startIndex, IList items)
             {
                 int intersectionStart = Math.Max(StartIndexInclusive - startIndex, 0);

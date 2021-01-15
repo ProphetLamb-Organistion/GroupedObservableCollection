@@ -11,7 +11,7 @@ namespace System.Collections.Specialized
         /// <summary>
         /// Represents a class managing the groupings in a <see cref="ObservableGroupingCollection{TKey,TValue}"/>.
         /// </summary>
-        [DebuggerDisplay("Count = {Count}")]
+        [DebuggerDisplay("Count = {" + nameof(Count) + "}")]
         public class SynchronizedObservableGroupCollection
               : ObservableCollection<ISynchronizedObservableGrouping<TKey, TValue>>,
                 IObservableGroupCollection<TKey, TValue>,
@@ -35,9 +35,7 @@ namespace System.Collections.Specialized
 #endregion
 
 #region Properties
-
-            public IEqualityComparer<TKey>? KeyEqualityComparer { get; }
-
+            
             public IEnumerable<TKey> Keys => m_keyDictionary.Keys;
 
             public IEnumerable<SynchronizedObservableGrouping> Values => m_keyDictionary.Values;
