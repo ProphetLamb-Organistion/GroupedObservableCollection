@@ -12,7 +12,7 @@ namespace GroupedObservableCollection.Test
         public void Test_Add()
         {
             var col = new ObservableGroupingCollection<KeyStru, ValueClass>();
-            var groupings = new Dictionary<KeyStru, IObservableGrouping<KeyStru, ValueClass>>();
+            var groupings = new Dictionary<KeyStru, ISynchronizedObservableGrouping<KeyStru, ValueClass>>();
             // Add Groupings
             foreach (var grouping in Resources.Instance.EnumerateSampleDataGrouped())
             {
@@ -97,7 +97,7 @@ namespace GroupedObservableCollection.Test
             }
 
             col.Groupings.Move(2,5);
-            keyIndicies.Move(2, 5);
+            keyIndicies.MoveTo(2, 5);
 
             for (var i = 0; i < col.Groupings.Count; i++)
             {
@@ -111,7 +111,7 @@ namespace GroupedObservableCollection.Test
             }
 
             col.Groupings.Move(5,2);
-            keyIndicies.Move(5, 2);
+            keyIndicies.MoveTo(5, 2);
 
             for (var i = 0; i < col.Groupings.Count; i++)
             {

@@ -15,8 +15,7 @@ namespace GroupedObservableCollection.Test
             _ = new ObservableGroupingCollection<KeyStru, ValueClass>();
             // Collection ctor
             _ = new ObservableGroupingCollection<KeyStru, ValueClass>(
-                Resources.Instance.EnumerateSampleDataGrouped(),
-                new KeyStruEqComp());
+                Resources.Instance.EnumerateSampleDataGrouped());
             Assert.Pass();
         }
         
@@ -67,8 +66,7 @@ namespace GroupedObservableCollection.Test
         public void Test_AccessGroups()
         {
             var col = new ObservableGroupingCollection<KeyStru, ValueClass>(
-                Resources.Instance.EnumerateSampleDataGrouped(),
-                new KeyStruEqComp());
+                Resources.Instance.EnumerateSampleDataGrouped());
             var accu = 0;
             foreach (var key in Resources.Instance.Keys)
             {
