@@ -87,7 +87,8 @@ namespace System.Collections.Specialized
             {
                 if (TryGetValue(key, out SynchronizedObservableGrouping grouping))
                     return grouping;
-                Add(grouping = factory());
+                grouping = factory();
+                Add(grouping);
                 return grouping;
             }
 

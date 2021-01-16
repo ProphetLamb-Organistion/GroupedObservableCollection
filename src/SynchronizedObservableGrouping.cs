@@ -9,7 +9,6 @@ namespace System.Collections.Specialized
     public partial class ObservableGroupingCollection<TKey, TValue>
     {
         [DebuggerDisplay("Count = {" + CountPropertyName + "}, Range=[{" + StartIndexPropertyName + "}..{" + EndIndexPropertyName + "}), Key = [{" + KeyPropertyName + "}]")]
-        [Serializable]
         public class SynchronizedObservableGrouping
             : ISynchronizedObservableGrouping<TKey, TValue>, ICollection
         {
@@ -73,9 +72,9 @@ namespace System.Collections.Specialized
                     if (value == _startIndexInclusive)
                         return;
                     if (EndIndexExclusive < value)
-                        throw new ArgumentOutOfRangeException(nameof(value), "EndIndexExclusive must be greater or equal to StartIndexInclusive");
+                        throw new ArgumentOutOfRangeException(nameof(value), nameof(EndIndexExclusive) + " must be greater or equal to " + nameof(StartIndexInclusive));
                     if ((uint) value > (uint) CollectionCount + 1)
-                        throw new IndexOutOfRangeException();
+                        throw new ArgumentOutOfRangeException(nameof(value), nameof(StartIndexInclusive)+ " must be less then or equal to the number of elements in the synchronized collection + 1");
                     _startIndexInclusive = value;
 
                     OnPropertyChanged();
@@ -93,7 +92,7 @@ namespace System.Collections.Specialized
                     if (value == _endIndexExclusive)
                         return;
                     if ((uint) value > (uint) CollectionCount + 1)
-                        throw new IndexOutOfRangeException();
+                        throw new ArgumentOutOfRangeException(nameof(value), nameof(EndIndexExclusive)+ " must be less then or equal to the number of elements in the synchronized collection + 1");
                     _endIndexExclusive = value;
                     
                     OnPropertyChanged();
@@ -267,19 +266,19 @@ namespace System.Collections.Specialized
             }
 
             /// <inheritdoc />
-            public void CopyTo(TValue[] array, int arrayIndex)
+            public void CopyTo(TValue[] array, int index)
             {
                 if (array is null)
                     throw new ArgumentNullException(nameof(array));
-                if (arrayIndex < 0)
-                    throw new ArgumentOutOfRangeException();
-                if (array.Length < arrayIndex + Count)
-                    throw new IndexOutOfRangeException();
+                if (index < 0)
+                    throw new ArgumentOutOfRangeException(nameof(index));
+                if (array.Length < index + Count)
+                    throw new ArgumentOutOfRangeException(nameof(array), "The array has insufficient capacity.");
                 lock (m_collection)
                 {
                     for (int i = StartIndexInclusive; i < EndIndexExclusive; i++)
                     {
-                        array[arrayIndex++] = m_collection[i];
+                        array[index++] = m_collection[i];
                     }
                 }
             }
@@ -290,9 +289,9 @@ namespace System.Collections.Specialized
                 if (array is null)
                     throw new ArgumentNullException(nameof(array));
                 if (index < 0)
-                    throw new ArgumentOutOfRangeException();
+                    throw new ArgumentOutOfRangeException(nameof(index));
                 if (array.Length < index + Count)
-                    throw new IndexOutOfRangeException();
+                    throw new ArgumentOutOfRangeException(nameof(array), "The array has insufficient capacity.");
                 lock (m_collection)
                 {
                     for (int i = StartIndexInclusive; i < EndIndexExclusive; i++)
@@ -392,8 +391,8 @@ namespace System.Collections.Specialized
                 {
                     case NotifyCollectionChangedAction.Add:
                         index = e.NewStartingIndex;
-                        IEnumerable? newEnumerable;
-                        if ((newEnumerable = EnumerateAffectingCollectionChanges(index, e.NewItems)) is null)
+                        IEnumerable? newEnumerable = EnumerateAffectingCollectionChanges(index, e.NewItems);
+                        if (newEnumerable is null)
                             break;
                         foreach (object obj in newEnumerable)
                             OnCollectionChanged(NotifyCollectionChangedAction.Add, obj, index++);
@@ -403,8 +402,8 @@ namespace System.Collections.Specialized
                         break;
                     case NotifyCollectionChangedAction.Remove:
                         index = e.OldStartingIndex;
-                        IEnumerable? oldEnumerable;
-                        if ((oldEnumerable = EnumerateAffectingCollectionChanges(index, e.OldItems)) is null)
+                        IEnumerable? oldEnumerable = EnumerateAffectingCollectionChanges(index, e.OldItems);
+                        if (oldEnumerable is null)
                             break;
                         foreach (object obj in oldEnumerable)
                             OnCollectionChanged(NotifyCollectionChangedAction.Remove, obj, index++);

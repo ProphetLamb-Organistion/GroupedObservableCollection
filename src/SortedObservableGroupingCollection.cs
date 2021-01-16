@@ -29,12 +29,12 @@ namespace System.Collections.Specialized
         /// </summary>
         public SortedObservableGroupingCollection()
         {
-            if (!typeof(IComparable<>).IsAssignableFrom(typeof(TKey)))
-                throw new ArgumentException("The generic type parameter TKey, does not implement IComparable<>.");
-            if (!typeof(IComparable<>).IsAssignableFrom(typeof(TValue)))
-                throw new ArgumentException("The generic type parameter TValue, does not implement IComparable<>.");
-            m_groupings = _groupings = new SynchronizedSortedObservableGroupCollection(m_groupings, this, Comparer<TKey>.Default);
+            if (!typeof(IComparable<TKey>).IsAssignableFrom(typeof(TKey)))
+                throw new ArgumentException("The generic type parameter TKey, does not implement IComparable<TKey>.");
+            if (!typeof(IComparable<TValue>).IsAssignableFrom(typeof(TValue)))
+                throw new ArgumentException("The generic type parameter TValue, does not implement IComparable<TValue>.");
             Comparer = Comparer<TValue>.Default;
+            m_groupings = _groupings = new SynchronizedSortedObservableGroupCollection(m_groupings, this, Comparer<TKey>.Default);
         }
 
         /// <summary>

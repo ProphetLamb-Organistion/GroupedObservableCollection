@@ -7,16 +7,16 @@ namespace GroupedObservableCollection.Import
     {
         // Source: https://source.dot.net/#System.Private.CoreLib/ArraySortHelper.cs,f3d6c6df965a8a86
         // Modified for IReadOnlyList<T> 
-        public static int BinarySearch(IReadOnlyList<T> array, int index, int length, T value, IComparer<T>? comparer)
+        public static int BinarySearch(IReadOnlyList<T> collection, int index, int length, T value, IComparer<T>? comparer)
         {
-            if (array is null)
-                throw new ArgumentNullException(nameof(array));
+            if (collection is null)
+                throw new ArgumentNullException(nameof(collection));
             if (index < 0)
                 throw new ArgumentOutOfRangeException(nameof(index));
             if (length < 0)
                 throw new ArgumentOutOfRangeException(nameof(length));
-            if (array.Count < index+length)
-                throw new IndexOutOfRangeException();
+            if (collection.Count < index + length)
+                throw new ArgumentOutOfRangeException(nameof(length));
 
             comparer ??= Comparer<T>.Default;
             int lo = index;
@@ -25,7 +25,7 @@ namespace GroupedObservableCollection.Import
             while (lo <= hi)
             {
                 int i = lo + ((hi - lo) >> 1);
-                int order = comparer.Compare(array[i], value);
+                int order = comparer.Compare(collection[i], value);
                 if (order == 0)
                     return i;
                 if (order < 0)

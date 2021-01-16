@@ -240,7 +240,7 @@ namespace System.Collections.Specialized
             if (count < 0)
                 throw new ArgumentOutOfRangeException(nameof(count));
             if (Count < startIndex + count)
-                throw new IndexOutOfRangeException();
+                throw new ArgumentOutOfRangeException(nameof(count));
 
 #if COLLECTIONVIEW_EVENT_MULTICHANGE_SUPPORT
             TValue[] notifyBuffer = new TValue[count];
@@ -296,7 +296,7 @@ namespace System.Collections.Specialized
             if ((uint)newIndex >= (uint)Count)
                 throw new ArgumentNullException(nameof(newIndex));
             if (Math.Max(oldIndex, newIndex) + count > Count)
-                throw new IndexOutOfRangeException();
+                throw new ArgumentOutOfRangeException(nameof(count));
             
             TValue[] movedItems = new TValue[count];
 #if COLLECTIONVIEW_EVENT_MULTICHANGE_SUPPORT
