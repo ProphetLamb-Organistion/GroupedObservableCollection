@@ -19,7 +19,8 @@
         <ListView x:Name="GroupedItemsListView"
                   Grid.Row="0"
                   Grid.Column="0"
-                  ItemsSource="{Binding Persons, Mode=OneWay}">
+                  ItemsSource="{Binding Persons, Mode=OneWay}"
+                  SelectedItem="{Binding SelectedPerson}">
             <ListView.View>
                 <GridView AllowsColumnReorder="True">
                     <GridViewColumn DisplayMemberBinding="{Binding Type}" Header="Type"/>
@@ -37,13 +38,14 @@
             <ListView.View>
                 <GridView>
                     <GridViewColumn DisplayMemberBinding="{Binding Key}" Header="Key"/>
-                    <GridViewColumn DisplayMemberBinding="{Binding StartIndexInclusive}" Header="Index"/>
+                    <GridViewColumn DisplayMemberBinding="{Binding StartIndexInclusive}" Header="Start index"/>
+                    <GridViewColumn DisplayMemberBinding="{Binding EndIndexExclusive}" Header="End excl"/>
                     <GridViewColumn DisplayMemberBinding="{Binding Count}" Header="Count"/>
                 </GridView>
             </ListView.View>
             
         </ListView>
-        <GroupBox Header="Items"
+        <GroupBox Header="Create new entry"
                   Grid.Row="1"
                   Grid.Column="0">
             <Grid>
@@ -87,11 +89,11 @@
                 </Grid.ColumnDefinitions>
             </Grid>
         </GroupBox>
-        <GroupBox Header="Groups"
+        <GroupBox Header="Groups &amp; Items"
                   Grid.Row="1"
                   Grid.Column="1">
             <Grid>
-                <Label Content="Move selected"/>
+                <Label Content="Move selected group"/>
                 <xctk:IntegerUpDown Value="{Binding SelectedGroupIndex}"
                                     Minimum="0"
                                     Maximum="{Binding Groupings.Count, Mode=OneWay, Converter={valueConverters:CountToMaximumIndexConverter}}"
@@ -100,12 +102,20 @@
                         Click="RemoveGroup_Click"
                         Grid.Column="1"
                         Grid.Row="1"/>
+                <Label Content="Move selected item"
+                       Grid.Row="2"/>
+                <xctk:IntegerUpDown Value="{Binding SelectedPersonIndexInGroup}"
+                                    Minimum="0"
+                                    Maximum="{Binding SelectedPersonGroup.Count, Mode=OneWay, Converter={valueConverters:CountToMaximumIndexConverter}}"
+                                    Grid.Row="2"
+                                    Grid.Column="1"/>
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="25"/>
                     <RowDefinition Height="25"/>
                     <RowDefinition Height="25"/>
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="100"/>
+                    <ColumnDefinition Width="150"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
             </Grid>
@@ -116,7 +126,7 @@
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="150"/>
+            <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
     </Grid>
 </Window>

@@ -16,7 +16,13 @@ namespace GroupedObservableCollection.Demo.ViewModels
 {
     public class MainWindowViewModel : ViewModelBase
     {
+#region Fields
+
         public readonly object PersonsLock = new object();
+
+#endregion
+
+#region Constructors
 
         public MainWindowViewModel()
         {
@@ -24,23 +30,9 @@ namespace GroupedObservableCollection.Demo.ViewModels
             BindingOperations.EnableCollectionSynchronization(Persons, PersonsLock);
         }
 
-        public void BeginLoadingSampleData(Func<Action, DispatcherOperation> dispatch)
-        {
-            Task.Run(delegate
-            {
-                foreach (var grouping in PersonSource.Instance.SampleData.GroupBy(x => x.Value.Type, x => x.Value))
-                {
-                    Debug.Assert(grouping.Count(x => x.Type != grouping.Key) == 0, "grouping.Count(x => x.Type != grouping.Key) == 0");
-                    dispatch(() =>
-                    {
-                        lock (PersonsLock)
-                        {
-                            PersonsGroupingCollection.Add(grouping);
-                        }
-                    });
-                }
-            });
-        }
+#endregion
+
+#region Properties
 
         public ObservableGroupingCollection<PersonType, Person> PersonsGroupingCollection { get; }
         public ObservableCollection<Person> Persons => PersonsGroupingCollection;
@@ -95,11 +87,113 @@ namespace GroupedObservableCollection.Demo.ViewModels
             get => _selectedGroupIndex;
             set
             {
-                if (_selectedGroupIndex is null || value is null)
+                if (!SelectedGroupIndex.HasValue || !value.HasValue)
                     return;
-                Groupings.Move(_selectedGroupIndex.Value, value.Value);
+                Groupings.Move(SelectedGroupIndex.Value, value.Value);
                 Set(ref _selectedGroupIndex, value);
+                SelectedPerson = null;
             }
         }
+
+        private Person? _selectedPerson;
+        public Person? SelectedPerson
+        {
+            get => _selectedPerson;
+            set
+            {
+                if (value is null)
+                {
+                    Set(ref _selectedPersonGroup, null, nameof(SelectedPersonGroup));
+                    Set(ref _selectedPersonIndexInGroup, null, nameof(SelectedPersonIndexInGroup));
+                    Set(ref _selectedPerson);
+                }
+                else
+                {
+                    ISynchronizedObservableGrouping<PersonType, Person>? group;
+                    lock (PersonsLock)
+                    {
+                        int itemIndex = PersonsGroupingCollection.IndexOf(value);
+                        group = Groupings
+                           .FirstOrDefault(x => x.StartIndexInclusive <= itemIndex && x.EndIndexExclusive > itemIndex);
+                    }
+
+                    if (group is null)
+                        throw new InvalidOperationException("The value does not belong to any grouping.");
+                    Set(ref _selectedPersonGroup, group, nameof(SelectedPersonGroup));
+                    Set(ref _selectedPersonIndexInGroup, group.IndexOf(value), nameof(SelectedPersonIndexInGroup));
+                    Set(ref _selectedPerson, value);
+                }
+            }
+        }
+
+        private int? _selectedPersonIndexInGroup;
+        public int? SelectedPersonIndexInGroup
+        {
+            get => _selectedPersonIndexInGroup;
+            set
+            {
+                if (!SelectedPersonIndexInGroup.HasValue || SelectedPersonGroup is null || !value.HasValue)
+                    return;
+                SelectedPersonGroup.Move(SelectedPersonIndexInGroup.Value, value.Value);
+                SelectedPerson = SelectedPersonGroup[value.Value];
+            }
+        }
+
+        private ISynchronizedObservableGrouping<PersonType, Person>? _selectedPersonGroup;
+        public ISynchronizedObservableGrouping<PersonType, Person>? SelectedPersonGroup
+        {
+            get => _selectedPersonGroup;
+            set => Set(ref _selectedPersonGroup, value);
+        }
+
+        #endregion
+
+#region Public members
+
+        public void BeginLoadingSampleData(Func<Action, DispatcherOperation> dispatch)
+        {
+            Task.Run(delegate
+            {
+                foreach (var grouping in PersonSource.Instance.SampleData.GroupBy(x => x.Value.Type, x => x.Value))
+                {
+                    Debug.Assert(grouping.Count(x => x.Type != grouping.Key) == 0, "grouping.Count(x => x.Type != grouping.Key) == 0");
+                    dispatch(() =>
+                    {
+                        lock (PersonsLock)
+                        {
+                            PersonsGroupingCollection.Add(grouping);
+                        }
+                    });
+                }
+            });
+        }
+
+        public void RemoveSelectedGroup()
+        {
+            if (!SelectedGroupIndex.HasValue)
+                return;
+            lock (PersonsLock)
+            {
+                if (SelectedPersonGroup == Groupings[SelectedGroupIndex.Value])
+                    SelectedPerson = null;
+                Groupings.RemoveAt(SelectedGroupIndex.Value);
+            }
+        }
+
+        public Person AddNewPerson()
+        {
+            var p = new Person
+            {
+                Prename = NewPersonPrename,
+                Surname = NewPersonSurname,
+                DateOfBirth = new DateTimeOffset(NewPersonDateOfBirth ?? DateTime.MinValue),
+                Type = NewPersonType
+            };
+            lock (PersonsLock)
+                PersonsGroupingCollection.Add(p.Type, p);
+            return p;
+        }
+
+#endregion
     }
 }
